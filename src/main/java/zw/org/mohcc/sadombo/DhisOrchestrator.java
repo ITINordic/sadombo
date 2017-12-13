@@ -41,7 +41,7 @@ public class DhisOrchestrator extends UntypedActor {
         ActorSelection httpConnector = getContext().actorSelection(config.userPathFor("http-connector"));
         Map<String, String> headers = new HashMap<>();
         //TODO: remove hard coding
-        String authorization = Base64.getEncoder().encodeToString("cchigoriwa:Test1234".getBytes());
+        String authorization = Base64.getEncoder().encodeToString((config.getCoreAPIUsername() + ":" + config.getCoreAPIPassword()).getBytes());
         headers.put("Authorization", "Basic " + authorization);
 
         log.info("Querying the DHIS service");
@@ -58,9 +58,9 @@ public class DhisOrchestrator extends UntypedActor {
                 getSelf(),
                 "DHIS Service",
                 request.getMethod(),
-                "https",
-                "zim.dhis2.org",
-                443,
+                config.getCoreAPIScheme(),
+                config.getCoreHost(),
+                config.getCoreAPIPort(),
                 "/develop/" + DhisUrlMapper.getDhisPath(request.getPath()),
                 null,
                 headers,
