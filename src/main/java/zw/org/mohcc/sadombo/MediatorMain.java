@@ -16,7 +16,7 @@ public class MediatorMain {
     private static RoutingTable buildRoutingTable() throws RoutingTable.RouteAlreadyMappedException {
         RoutingTable routingTable = new RoutingTable();
         routingTable.addRoute("/mediator", DefaultOrchestrator.class);
-        routingTable.addRegexRoute("/dhis/.*", DhisOrchestrator.class);
+        routingTable.addRegexRoute("/dhis-mediator/.*", DhisOrchestrator.class);
         return routingTable;
     }
 

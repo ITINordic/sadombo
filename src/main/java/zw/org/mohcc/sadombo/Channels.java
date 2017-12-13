@@ -9,7 +9,7 @@ import org.apache.commons.io.IOUtils;
  *
  * @author Charles Chigoriwa
  */
-public class OpenhimChannels {
+public class Channels {
 
     private String dhisChannelScheme;
     private String dhisChannelHost;
