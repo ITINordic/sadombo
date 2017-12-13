@@ -5,6 +5,7 @@ import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.zim.company.util.GeneralUtility;
+import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,9 +19,12 @@ public class DhisOrchestrator extends UntypedActor {
 
     private final MediatorConfig config;
     private MediatorHTTPRequest originalRequest;
+    private OpenhimChannels openhimChannels;
 
-    public DhisOrchestrator(MediatorConfig config) {
+    public DhisOrchestrator(MediatorConfig config) throws IOException {
         this.config = config;
+        this.openhimChannels = new OpenhimChannels();
+        this.openhimChannels.setProperties("openhim-channels.properties");
     }
 
     @Override
@@ -41,7 +45,7 @@ public class DhisOrchestrator extends UntypedActor {
         ActorSelection httpConnector = getContext().actorSelection(config.userPathFor("http-connector"));
         Map<String, String> headers = new HashMap<>();
         //TODO: remove hard coding
-        String authorization = Base64.getEncoder().encodeToString((config.getCoreAPIUsername() + ":" + config.getCoreAPIPassword()).getBytes());
+        String authorization = Base64.getEncoder().encodeToString((openhimChannels.getDhisChannelUser() + ":" + openhimChannels.getDhisChannelPassword()).getBytes());
         headers.put("Authorization", "Basic " + authorization);
 
         log.info("Querying the DHIS service");
@@ -58,10 +62,10 @@ public class DhisOrchestrator extends UntypedActor {
                 getSelf(),
                 "DHIS Service",
                 request.getMethod(),
-                config.getCoreAPIScheme(),
-                config.getCoreHost(),
-                config.getCoreAPIPort(),
-                "/develop/" + DhisUrlMapper.getDhisPath(request.getPath()),
+                openhimChannels.getDhisChannelScheme(),
+                openhimChannels.getDhisChannelHost(),
+                openhimChannels.getDhisChannelPort(),
+                openhimChannels.getDhisChannelContextPath() + DhisUrlMapper.getDhisPath(request.getPath()),
                 null,
                 headers,
                 null
