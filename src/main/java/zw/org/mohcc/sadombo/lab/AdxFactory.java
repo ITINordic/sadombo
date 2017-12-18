@@ -1,9 +1,14 @@
 package zw.org.mohcc.sadombo.lab;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import javax.lang.model.SourceVersion;
 
 /**
  *
@@ -12,8 +17,8 @@ import java.util.Set;
 public class AdxFactory {
 
     public static void main(String[] args) throws IOException {
-        //System.out.println(getAdxXsd("ATB_002"));
-        System.out.println(getXsdDataEntryTemplate("ATB_002"));
+        //System.out.println(getAdxXsd("ATB_005 or ATB_002 or ATB_003 or ATB_010"));
+        System.out.println(getXsdDataEntryTemplate("ATB_010"));
     }
 
     public static String getAdxXsd(String dataSetCode) throws IOException {
@@ -55,7 +60,7 @@ public class AdxFactory {
         Set<Category> categories = getCategories(inflatedDataElementCategoryCombos);
 
         for (Category category : categories) {
-            if (category.getCode() != null && !category.getCode().isEmpty()) {
+            if (category.getCode() != null && !category.getCode().isEmpty() && SourceVersion.isName(category.getCode())) {
                 sb.append("<xs:simpleType name=\"").append(getClassTypeName(category.getCode())).append("\">").append("\n");
                 sb.append("<xs:restriction base=\"xs:token\">").append("\n");
                 for (CategoryOption categoryOption : category.getCategoryOptions()) {
@@ -136,15 +141,16 @@ public class AdxFactory {
         StringBuilder sb = new StringBuilder();
         sb.append("<adx xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"urn:ihe:qrph:adx:2015 ").append(dataSetCode).append(".xsd\" xmlns=\"urn:ihe:qrph:adx:2015\">").append("\n");
 
-        sb.append("<group dataSet=\"").append(dataSetCode).append("\" orgUnit=\"").append(sampleOrgUnitCode).append("\" period=\"XXXXX-XX-XX/XXX\" comment=\"XYZYYZ\">").append("\n");
+        sb.append("<group dataSet=\"").append(dataSetCode).append("\" orgUnit=\"").append(sampleOrgUnitCode).append("\" period=\"").append(reportDate(dataSet)).append("\" comment=\"Sample Data straight from hot code\">").append("\n");
 
         int count = 0;
         for (DataSetElement dataSetElement : dataSet.getDataSetElements()) {
             DataElement dataElement = dataSetElement.getDataElement();
             if (count < 10 && dataElement.getCode() != null && !dataElement.getCode().trim().isEmpty()) {
-                sb.append("<dataValue dataElement=\"").append(dataElement.getCode()).append("\" value=\"XX\" ");
+                int randomValue = (int) (101 * Math.random());
+                sb.append("<dataValue dataElement=\"").append(dataElement.getCode()).append("\" value=\"").append(randomValue).append("\" ");
                 for (Category category : categories) {
-                    if (category.getCode() != null && !category.getCode().isEmpty()) {
+                    if (category.getCode() != null && !category.getCode().isEmpty() && SourceVersion.isName(category.getCode())) {
 
                         String sampleCategoryOptionCode = "XXXXXXXX";
 
@@ -189,6 +195,15 @@ public class AdxFactory {
         } else {
             return null;
         }
+    }
+
+    private static String reportDate(DataSet dataSet) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        Date today = Calendar.getInstance().getTime();
+        //TODO: The last element should be computed based on data set period type (eg monthly, daily etc)
+        String reportDate = df.format(today) + "/P1M";
+        return reportDate;
+
     }
 
 }
