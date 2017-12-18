@@ -7,13 +7,11 @@ import java.util.Objects;
  *
  * @author Charles Chigoriwa
  */
-public class DataSet {
+public class CategoryOptionCombo {
 
     private String id;
-    private String code;
-    private String periodType;
     private CategoryCombo categoryCombo;
-    private List<DataSetElement> dataSetElements;
+    private List<CategoryOption> categoryOptions;
 
     public String getId() {
         return id;
@@ -21,14 +19,6 @@ public class DataSet {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
     }
 
     public CategoryCombo getCategoryCombo() {
@@ -39,26 +29,18 @@ public class DataSet {
         this.categoryCombo = categoryCombo;
     }
 
-    public String getPeriodType() {
-        return periodType;
+    public List<CategoryOption> getCategoryOptions() {
+        return categoryOptions;
     }
 
-    public void setPeriodType(String periodType) {
-        this.periodType = periodType;
-    }
-
-    public List<DataSetElement> getDataSetElements() {
-        return dataSetElements;
-    }
-
-    public void setDataSetElements(List<DataSetElement> dataSetElements) {
-        this.dataSetElements = dataSetElements;
+    public void setCategoryOptions(List<CategoryOption> categoryOptions) {
+        this.categoryOptions = categoryOptions;
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 37 * hash + Objects.hashCode(this.id);
+        hash = 41 * hash + Objects.hashCode(this.id);
         return hash;
     }
 
@@ -73,13 +55,13 @@ public class DataSet {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final DataSet other = (DataSet) obj;
+        final CategoryOptionCombo other = (CategoryOptionCombo) obj;
         return Objects.equals(this.id, other.id);
     }
 
     @Override
     public String toString() {
-        return "DataSet{" + "id=" + id + ", code=" + code + ", periodType=" + periodType + ", categoryCombo=" + categoryCombo + ", dataSetElements=" + dataSetElements + '}';
+        return "CategoryOptionCombo{" + "id=" + id + ", categoryCombo=" + categoryCombo + ", categoryOptions=" + categoryOptions + '}';
     }
 
 }

@@ -1,5 +1,7 @@
 package zw.org.mohcc.sadombo.lab;
 
+import java.util.Objects;
+
 /**
  *
  * @author Charles Chigoriwa
@@ -41,6 +43,28 @@ public class DataElement {
 
     public void setCategoryCombo(CategoryCombo categoryCombo) {
         this.categoryCombo = categoryCombo;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 97 * hash + Objects.hashCode(this.id);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DataElement other = (DataElement) obj;
+        return Objects.equals(this.id, other.id);
     }
 
     @Override

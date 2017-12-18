@@ -7,13 +7,12 @@ import java.util.Objects;
  *
  * @author Charles Chigoriwa
  */
-public class CategoryCombo {
+public class Category {
 
     private String id;
     private String name;
     private String code;
-    private List<Category> categories;
-    private List<CategoryOptionCombo> categoryOptionCombos;
+    private List<CategoryOption> categoryOptions;
 
     public String getId() {
         return id;
@@ -39,26 +38,18 @@ public class CategoryCombo {
         this.code = code;
     }
 
-    public List<Category> getCategories() {
-        return categories;
+    public List<CategoryOption> getCategoryOptions() {
+        return categoryOptions;
     }
 
-    public void setCategories(List<Category> categories) {
-        this.categories = categories;
-    }
-
-    public List<CategoryOptionCombo> getCategoryOptionCombos() {
-        return categoryOptionCombos;
-    }
-
-    public void setCategoryOptionCombos(List<CategoryOptionCombo> categoryOptionCombos) {
-        this.categoryOptionCombos = categoryOptionCombos;
+    public void setCategoryOptions(List<CategoryOption> categoryOptions) {
+        this.categoryOptions = categoryOptions;
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 97 * hash + Objects.hashCode(this.id);
+        hash = 29 * hash + Objects.hashCode(this.id);
         return hash;
     }
 
@@ -73,13 +64,13 @@ public class CategoryCombo {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final CategoryCombo other = (CategoryCombo) obj;
+        final Category other = (Category) obj;
         return Objects.equals(this.id, other.id);
     }
 
     @Override
     public String toString() {
-        return "CategoryCombo{" + "id=" + id + ", name=" + name + ", code=" + code + ", categories=" + categories + '}';
+        return "Category{" + "id=" + id + ", name=" + name + ", code=" + code + ", categoryOptions=" + categoryOptions + '}';
     }
 
 }
