@@ -1,7 +1,9 @@
 package zw.org.mohcc.sadombo.lab;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  *
@@ -14,6 +16,7 @@ public class DataSet {
     private String periodType;
     private CategoryCombo categoryCombo;
     private List<DataSetElement> dataSetElements;
+    private List<OrganisationUnit> organisationUnits;
 
     public String getId() {
         return id;
@@ -53,6 +56,22 @@ public class DataSet {
 
     public void setDataSetElements(List<DataSetElement> dataSetElements) {
         this.dataSetElements = dataSetElements;
+    }
+
+    public List<OrganisationUnit> getOrganisationUnits() {
+        return organisationUnits;
+    }
+
+    public void setOrganisationUnits(List<OrganisationUnit> organisationUnits) {
+        this.organisationUnits = organisationUnits;
+    }
+
+    public Set<CategoryCombo> dataSetElementCategoryCombos() {
+        Set<CategoryCombo> categoryCombos = new HashSet<>();
+        this.getDataSetElements().forEach((dataSetElement) -> {
+            categoryCombos.add(dataSetElement.resolvedCategoryCombo());
+        });
+        return categoryCombos;
     }
 
     @Override

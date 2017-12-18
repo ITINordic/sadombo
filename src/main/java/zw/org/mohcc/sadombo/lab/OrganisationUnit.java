@@ -6,7 +6,7 @@ import java.util.Objects;
  *
  * @author Charles Chigoriwa
  */
-public class CategoryOption {
+public class OrganisationUnit {
 
     private String id;
     private String name;
@@ -39,7 +39,7 @@ public class CategoryOption {
     @Override
     public int hashCode() {
         int hash = 5;
-        hash = 79 * hash + Objects.hashCode(this.id);
+        hash = 97 * hash + Objects.hashCode(this.id);
         return hash;
     }
 
@@ -54,7 +54,7 @@ public class CategoryOption {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final CategoryOption other = (CategoryOption) obj;
+        final OrganisationUnit other = (OrganisationUnit) obj;
         if (!Objects.equals(this.id, other.id)) {
             return false;
         }
@@ -63,7 +63,7 @@ public class CategoryOption {
 
     @Override
     public String toString() {
-        return "CategoryOption{" + "id=" + id + ", name=" + name + ", code=" + code + '}';
+        return "OrganisationUnit{" + "id=" + id + ", name=" + name + ", code=" + code + '}';
     }
 
 }
