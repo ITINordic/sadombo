@@ -55,10 +55,7 @@ public class OrganisationUnit {
             return false;
         }
         final OrganisationUnit other = (OrganisationUnit) obj;
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.id, other.id);
     }
 
     @Override
