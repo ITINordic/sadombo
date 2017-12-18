@@ -18,7 +18,8 @@ public class AdxFactory {
 
     public static void main(String[] args) throws IOException {
         //System.out.println(getAdxXsd("ATB_005 or ATB_002 or ATB_003 or ATB_010"));
-        System.out.println(getXsdDataEntryTemplate("ATB_010"));
+        //System.out.println(getXsdDataEntryTemplate("ATB_010"));
+        System.out.println(getAdxXsd("ATB_010"));
     }
 
     public static String getAdxXsd(String dataSetCode) throws IOException {
@@ -103,7 +104,7 @@ public class AdxFactory {
         sb.append("<xs:attribute name=\"value\" use=\"required\" type=\"xs:decimal\"/>").append("\n");
 
         for (Category category : categories) {
-            if (category.getCode() != null && !category.getCode().isEmpty()) {
+            if (category.getCode() != null && !category.getCode().isEmpty() && SourceVersion.isName(category.getCode())) {
                 sb.append("<xs:attribute name=\"").append(category.getCode()).append("\" type=\"").append(getClassTypeName(category.getCode())).append("\" use=\"optional\"/>").append("\n");
             }
         }
