@@ -15,7 +15,7 @@ public class MiscellaneousTest {
 
     @Test
     public void testXsdDataLoad() throws SAXException, IOException {
-        InputStream xsdInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("zw/org/mohcc/sadombo/data/ATB_005.xsd");
+        InputStream xsdInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("ATB_005.xsd");
         String xsdContent = IOUtils.toString(xsdInputStream);
         System.out.println(xsdContent);
         assertTrue(xsdContent != null && !xsdContent.isEmpty());
@@ -23,7 +23,7 @@ public class MiscellaneousTest {
 
     @Test
     public void testXmlDataLoad() throws SAXException, IOException {
-        InputStream xmlInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("zw/org/mohcc/sadombo/data/sample_data.xml");
+        InputStream xmlInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("sample_data.xml");
         String xmlContent = IOUtils.toString(xmlInputStream);
         System.out.println(xmlContent);
         assertTrue(xmlContent != null && !xmlContent.isEmpty());

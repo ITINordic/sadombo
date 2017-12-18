@@ -7,10 +7,9 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import org.apache.commons.io.IOUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.xml.sax.SAXException;
+import zw.org.mohcc.sadombo.utils.ClasspathResourceResolver;
 
 /**
  *
@@ -18,17 +17,16 @@ import org.xml.sax.SAXException;
  */
 public class DataValidatorTest {
 
-    @Ignore
+    //@Ignore
     @Test
     public void test() throws SAXException, IOException {
 
-        InputStream xsdInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("zw/org/mohcc/sadombo/data/ATB_005.xsd");
-        InputStream xmlInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("zw/org/mohcc/sadombo/data/sample_data.xml");
-
-        System.out.println(IOUtils.toString(xmlInputStream));
+        InputStream xsdInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("ATB_005.xsd");
+        InputStream xmlInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("sample_data.xml");
 
         SchemaFactory factory
                 = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        factory.setResourceResolver(new ClasspathResourceResolver());
         Schema schema = factory.newSchema(new StreamSource(xsdInputStream));
         Validator validator = schema.newValidator();
         validator.validate(new StreamSource(xmlInputStream));
