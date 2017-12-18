@@ -43,19 +43,12 @@ public class DhisOrchestrator extends UntypedActor {
 
         ActorSelection httpConnector = getContext().actorSelection(config.userPathFor("http-connector"));
         Map<String, String> headers = new HashMap<>();
-        //TODO: remove hard coding
         String authorization = Base64.getEncoder().encodeToString((channels.getDhisChannelUser() + ":" + channels.getDhisChannelPassword()).getBytes());
+        headers.putAll(request.getHeaders());
         headers.put("Authorization", "Basic " + authorization);
 
         log.info("Querying the DHIS service");
 
-        log.info("request.getMethod()=" + request.getMethod());
-
-        log.info("request.getPath()=" + request.getPath());
-
-        log.info("GeneralUtility.getRequestPath(request.getPath())=" + GeneralUtility.getPath(request.getPath()));
-
-        //TODO: Remove hard coding
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 request.getRequestHandler(),
                 getSelf(),
@@ -65,9 +58,9 @@ public class DhisOrchestrator extends UntypedActor {
                 channels.getDhisChannelHost(),
                 channels.getDhisChannelPort(),
                 channels.getDhisChannelContextPath() + DhisUrlMapper.getDhisPath(request.getPath()),
-                null,
+                request.getBody(),
                 headers,
-                null
+                request.getParams()
         );
 
         httpConnector.tell(serviceRequest, getSelf());
@@ -75,6 +68,7 @@ public class DhisOrchestrator extends UntypedActor {
 
     private void processDhisResponse(MediatorHTTPResponse response) {
         log.info("Received response from DHIS service");
+        log.info(response.getBody());
         originalRequest.getRespondTo().tell(response.toFinishRequest(), getSelf());
     }
 

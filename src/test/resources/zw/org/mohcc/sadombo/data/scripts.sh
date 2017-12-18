@@ -1,0 +1,1 @@
+curl -u "bobj:Bob12345" -d @sample_data.xml -H "Content-type:application/adx+xml" "https://zim.dhis2.org/develop/api/dataValueSets.xml?idScheme=code&categoryOptionComboIdScheme=uid" |xmllint --format -

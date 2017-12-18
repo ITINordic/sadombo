@@ -7,11 +7,10 @@ import akka.testkit.JavaTestKit;
 import java.util.Collections;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.*;
+import static org.junit.Assert.*;
 import org.openhim.mediator.engine.MediatorConfig;
 import org.openhim.mediator.engine.messages.FinishRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
-
-import static org.junit.Assert.*;
 
 public class DefaultOrchestratorTest {
 
@@ -38,46 +37,50 @@ public class DefaultOrchestratorTest {
 
     @Test
     public void testMediatorHTTPRequest() throws Exception {
-        new JavaTestKit(system) {{
-            final MediatorConfig testConfig = new MediatorConfig("sadombo", "localhost", 3000);
-            final ActorRef defaultOrchestrator = system.actorOf(Props.create(DefaultOrchestrator.class, testConfig));
+        new JavaTestKit(system) {
+            {
+                final MediatorConfig testConfig = new MediatorConfig("sadombo", "localhost", 3000);
+                final ActorRef defaultOrchestrator = system.actorOf(Props.create(DefaultOrchestrator.class, testConfig));
 
-            MediatorHTTPRequest POST_Request = new MediatorHTTPRequest(
-                    getRef(),
-                    getRef(),
-                    "unit-test",
-                    "POST",
-                    "http",
-                    null,
-                    null,
-                    "/mediator",
-                    "test message",
-                    Collections.<String, String>singletonMap("Content-Type", "text/plain"),
-                    Collections.<Pair<String, String>>emptyList()
-            );
+                MediatorHTTPRequest POST_Request = new MediatorHTTPRequest(
+                        getRef(),
+                        getRef(),
+                        "unit-test",
+                        "POST",
+                        "http",
+                        null,
+                        null,
+                        "/mediator",
+                        "test message",
+                        Collections.<String, String>singletonMap("Content-Type", "text/plain"),
+                        Collections.<Pair<String, String>>emptyList()
+                );
 
-            defaultOrchestrator.tell(POST_Request, getRef());
+                defaultOrchestrator.tell(POST_Request, getRef());
 
-            final Object[] out =
-                    new ReceiveWhile<Object>(Object.class, duration("1 second")) {
-                        @Override
-                        protected Object match(Object msg) throws Exception {
-                            if (msg instanceof FinishRequest) {
-                                return msg;
+                final Object[] out
+                        = new ReceiveWhile<Object>(Object.class, duration("1 second")) {
+                            @Override
+                            protected Object match(Object msg) throws Exception {
+                                if (msg instanceof FinishRequest) {
+                                    return msg;
+                                }
+                                throw noMatch();
                             }
-                            throw noMatch();
-                        }
-                    }.get();
+                        }.get();
 
-            boolean foundResponse = false;
+                boolean foundResponse = false;
 
-            for (Object o : out) {
-                if (o instanceof FinishRequest) {
-                    foundResponse = true;
+                for (Object o : out) {
+                    if (o instanceof FinishRequest) {
+                        FinishRequest finishRequest = (FinishRequest) o;
+                        System.out.println(finishRequest.getResponse());
+                        foundResponse = true;
+                    }
                 }
-            }
 
-            assertTrue("Must send FinishRequest", foundResponse);
-        }};
+                assertTrue("Must send FinishRequest", foundResponse);
+            }
+        };
     }
 }
