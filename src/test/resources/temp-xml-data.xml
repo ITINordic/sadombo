@@ -1,0 +1,8 @@
+<adx xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ihe:qrph:adx:2015 ATB_002.xsd" xmlns="urn:ihe:qrph:adx:2015">
+    <group dataSet="ATB_002" orgUnit="XXXXXX" period="XXXXX-XX-XX/XXX" comment="XYZYYZ">
+        <dataValue dataElement="XXX_XXX_XXX" value="XX" SEX="XXXXXXXX" ATB_SUMMARY_AGEGRP="XXXXXXXX" />
+        <dataValue dataElement="XXX_XXX_XXX" value="XX" SEX="XXXXXXXX" ATB_SUMMARY_AGEGRP="XXXXXXXX" />
+        <dataValue dataElement="XXX_XXX_XXX" value="XX" SEX="XXXXXXXX" ATB_SUMMARY_AGEGRP="XXXXXXXX" />
+    </group>
+</adx>
+

@@ -1,6 +1,7 @@
 package zw.org.mohcc.sadombo.lab;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,7 +12,8 @@ import java.util.Set;
 public class AdxFactory {
 
     public static void main(String[] args) throws IOException {
-        System.out.println(getAdxXsd("ATB_005"));
+        //System.out.println(getAdxXsd("ATB_002"));
+        System.out.println(getXsdDataEntryTemplate("ATB_002"));
     }
 
     public static String getAdxXsd(String dataSetCode) throws IOException {
@@ -82,7 +84,7 @@ public class AdxFactory {
         sb.append("<xs:sequence maxOccurs=\"unbounded\">").append("\n");
         sb.append("<xs:element name=\"dataValue\" type=\"DataValueType\"/>").append("\n");
         sb.append("</xs:sequence>").append("\n");
-        sb.append("<xs:attribute name=\"dataSet\" use=\"required\" type=\"xs:string\" fixed=\"ATB_005\"/>").append("\n");
+        sb.append("<xs:attribute name=\"dataSet\" use=\"required\" type=\"xs:string\" fixed=\"").append(dataSetCode).append("\"/>").append("\n");
         sb.append("<xs:attribute name=\"orgUnit\" use=\"required\" type=\"CL_OrgUnits_ZW_MOHCC_1.0_Type\"/>").append("\n");
         sb.append("<xs:attribute name=\"period\" use=\"required\" type=\"periodType\"/>").append("\n");
         sb.append("<xs:anyAttribute processContents=\"skip\"/>").append("\n");
@@ -110,6 +112,63 @@ public class AdxFactory {
         return sb.toString();
     }
 
+    public static String getXsdDataEntryTemplate(String dataSetCode) throws IOException {
+        DataSet dataSet = DhisClient.getDataSetByCode(dataSetCode);
+        if (dataSet == null) {
+            return null;
+        }
+        Set<CategoryCombo> inflatedDataElementCategoryCombos = new HashSet<>();
+
+        for (CategoryCombo categoryCombo : dataSet.dataSetElementCategoryCombos()) {
+            inflatedDataElementCategoryCombos.add(DhisClient.getCategoryComboById(categoryCombo.getId()));
+        }
+
+        Set<Category> categories = getCategories(inflatedDataElementCategoryCombos);
+
+        String sampleOrgUnitCode = "XXXXXXX";
+        if (dataSet.getOrganisationUnits() != null && !dataSet.getOrganisationUnits().isEmpty()) {
+            OrganisationUnit randomOrg = (OrganisationUnit) getRandomObject(dataSet.getOrganisationUnits());
+            if (randomOrg != null) {
+                sampleOrgUnitCode = randomOrg.getCode();
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<adx xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"urn:ihe:qrph:adx:2015 ").append(dataSetCode).append(".xsd\" xmlns=\"urn:ihe:qrph:adx:2015\">").append("\n");
+
+        sb.append("<group dataSet=\"").append(dataSetCode).append("\" orgUnit=\"").append(sampleOrgUnitCode).append("\" period=\"XXXXX-XX-XX/XXX\" comment=\"XYZYYZ\">").append("\n");
+
+        int count = 0;
+        for (DataSetElement dataSetElement : dataSet.getDataSetElements()) {
+            DataElement dataElement = dataSetElement.getDataElement();
+            if (count < 10 && dataElement.getCode() != null && !dataElement.getCode().trim().isEmpty()) {
+                sb.append("<dataValue dataElement=\"").append(dataElement.getCode()).append("\" value=\"XX\" ");
+                for (Category category : categories) {
+                    if (category.getCode() != null && !category.getCode().isEmpty()) {
+
+                        String sampleCategoryOptionCode = "XXXXXXXX";
+
+                        if (category.getCategoryOptions() != null && !category.getCategoryOptions().isEmpty()) {
+                            CategoryOption randomCategoryOption = (CategoryOption) getRandomObject(category.getCategoryOptions());
+                            if (randomCategoryOption != null) {
+                                sampleCategoryOptionCode = randomCategoryOption.getCode();
+                            }
+                        }
+
+                        sb.append(category.getCode()).append("=\"").append(sampleCategoryOptionCode).append("\" ");
+                    }
+                }
+
+                sb.append("/>").append("\n");
+                count++;
+            }
+        }
+
+        sb.append("</group>").append("\n");
+        sb.append("</adx>").append("\n");
+        return sb.toString();
+    }
+
     private static Set<Category> getCategories(Set<CategoryCombo> inflatedDataElementCategoryCombos) {
         Set<Category> categories = new HashSet<>();
         inflatedDataElementCategoryCombos.forEach((categoryCombo) -> {
@@ -120,6 +179,16 @@ public class AdxFactory {
 
     private static String getClassTypeName(String code) {
         return "CL_" + code + "_ZW_MOHCC_1.0_Type";
+    }
+
+    private static Object getRandomObject(Collection<?> collection) {
+
+        if (!collection.isEmpty()) {
+            int index = (int) (collection.size() * Math.random());
+            return collection.toArray()[index];
+        } else {
+            return null;
+        }
     }
 
 }
