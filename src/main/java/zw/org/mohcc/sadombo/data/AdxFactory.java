@@ -19,7 +19,7 @@ public class AdxFactory {
     public static void main(String[] args) throws IOException {
         //System.out.println(getAdxXsd("ATB_005 or ATB_002 or ATB_003 or ATB_010"));
         //System.out.println(getXsdDataEntryTemplate("ATB_005"));
-        System.out.println(getAdxXsd("ATB_010"));
+        System.out.println(getXsdDataEntryTemplate("ATB_010"));
     }
 
     public static String getAdxXsd(String dataSetCode) throws IOException {
