@@ -1,16 +1,18 @@
-package zw.org.mohcc.sadombo.lab;
+package zw.org.mohcc.sadombo.data;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
  *
  * @author Charles Chigoriwa
  */
-public class OrganisationUnit {
+public class Category {
 
     private String id;
     private String name;
     private String code;
+    private List<CategoryOption> categoryOptions;
 
     public String getId() {
         return id;
@@ -36,10 +38,18 @@ public class OrganisationUnit {
         this.code = code;
     }
 
+    public List<CategoryOption> getCategoryOptions() {
+        return categoryOptions;
+    }
+
+    public void setCategoryOptions(List<CategoryOption> categoryOptions) {
+        this.categoryOptions = categoryOptions;
+    }
+
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 97 * hash + Objects.hashCode(this.id);
+        int hash = 7;
+        hash = 29 * hash + Objects.hashCode(this.id);
         return hash;
     }
 
@@ -54,13 +64,13 @@ public class OrganisationUnit {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final OrganisationUnit other = (OrganisationUnit) obj;
+        final Category other = (Category) obj;
         return Objects.equals(this.id, other.id);
     }
 
     @Override
     public String toString() {
-        return "OrganisationUnit{" + "id=" + id + ", name=" + name + ", code=" + code + '}';
+        return "Category{" + "id=" + id + ", name=" + name + ", code=" + code + ", categoryOptions=" + categoryOptions + '}';
     }
 
 }

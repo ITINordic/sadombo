@@ -1,4 +1,4 @@
-package zw.org.mohcc.sadombo.lab;
+package zw.org.mohcc.sadombo.data;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;

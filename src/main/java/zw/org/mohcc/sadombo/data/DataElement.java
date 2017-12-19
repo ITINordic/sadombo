@@ -1,4 +1,4 @@
-package zw.org.mohcc.sadombo.lab;
+package zw.org.mohcc.sadombo.data;
 
 import java.util.Objects;
 
@@ -6,11 +6,12 @@ import java.util.Objects;
  *
  * @author Charles Chigoriwa
  */
-public class CategoryOption {
+public class DataElement {
 
     private String id;
-    private String name;
     private String code;
+    private String name;
+    private CategoryCombo categoryCombo;
 
     public String getId() {
         return id;
@@ -18,14 +19,6 @@ public class CategoryOption {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getCode() {
@@ -36,10 +29,26 @@ public class CategoryOption {
         this.code = code;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public CategoryCombo getCategoryCombo() {
+        return categoryCombo;
+    }
+
+    public void setCategoryCombo(CategoryCombo categoryCombo) {
+        this.categoryCombo = categoryCombo;
+    }
+
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 79 * hash + Objects.hashCode(this.id);
+        int hash = 3;
+        hash = 97 * hash + Objects.hashCode(this.id);
         return hash;
     }
 
@@ -54,16 +63,13 @@ public class CategoryOption {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final CategoryOption other = (CategoryOption) obj;
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
-        return true;
+        final DataElement other = (DataElement) obj;
+        return Objects.equals(this.id, other.id);
     }
 
     @Override
     public String toString() {
-        return "CategoryOption{" + "id=" + id + ", name=" + name + ", code=" + code + '}';
+        return "DataElement{" + "id=" + id + ", code=" + code + ", name=" + name + ", categoryCombo=" + categoryCombo + '}';
     }
 
 }

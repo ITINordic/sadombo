@@ -1,4 +1,4 @@
-package zw.org.mohcc.sadombo.lab;
+package zw.org.mohcc.sadombo.data;
 
 import java.util.HashSet;
 import java.util.List;
