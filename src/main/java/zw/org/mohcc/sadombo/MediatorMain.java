@@ -6,10 +6,8 @@ import akka.event.LoggingAdapter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.openhim.mediator.engine.*;
+import zw.org.mohcc.sadombo.data.util.GeneralUtility;
 
 public class MediatorMain {
 
@@ -27,15 +25,11 @@ public class MediatorMain {
 
     private static MediatorConfig loadConfig(String configPath) throws IOException, RoutingTable.RouteAlreadyMappedException {
         MediatorConfig config = new MediatorConfig();
-
+        String mediatorHomeFilePath = System.getProperty("user.home") + File.separator + ".sadombo" + File.separator + "mediator.properties";
         if (configPath != null) {
-            Properties props = new Properties();
-            File conf = new File(configPath);
-            InputStream in = FileUtils.openInputStream(conf);
-            props.load(in);
-            IOUtils.closeQuietly(in);
-
-            config.setProperties(props);
+            config.setProperties(GeneralUtility.loadProperties(configPath));
+        } else if (new File(mediatorHomeFilePath).exists()) {
+            config.setProperties(GeneralUtility.loadProperties(mediatorHomeFilePath));
         } else {
             config.setProperties("mediator.properties");
         }
@@ -66,6 +60,20 @@ public class MediatorMain {
         return config;
     }
 
+    private static Channels loadChannels(String channelConfigPath) throws IOException {
+        Channels channels = new Channels();
+        String channelHomeFilePath = System.getProperty("user.home") + File.separator + ".sadombo" + File.separator + "openhim-channels.properties";
+        if (channelConfigPath != null) {
+            channels.setProperties(GeneralUtility.loadProperties(channelConfigPath));
+        } else if (new File(channelHomeFilePath).exists()) {
+            channels.setProperties(GeneralUtility.loadProperties(channelHomeFilePath));
+        } else {
+            channels.setProperties("openhim-channels.properties");
+        }
+        return channels;
+
+    }
+
     public static void main(String... args) throws Exception {
         //setup actor system
         final ActorSystem system = ActorSystem.create("mediator");
@@ -75,15 +83,25 @@ public class MediatorMain {
         //setup actors
         log.info("Initializing mediator actors...");
 
-        String configPath = null;
-        if (args.length == 2 && args[0].equals("--conf")) {
-            configPath = args[1];
+        String configPath = GeneralUtility.getParamValue(args, "--conf");
+        if (configPath != null) {
             log.info("Loading mediator configuration from '" + configPath + "'...");
         } else {
             log.info("No configuration specified. Using default properties...");
         }
 
         MediatorConfig config = loadConfig(configPath);
+
+        String channelConfigPath = GeneralUtility.getParamValue(args, "--chan-conf");
+        if (channelConfigPath != null) {
+            log.info("Loading channels configuration from '" + channelConfigPath + "'...");
+        } else {
+            log.info("No channels configuration specified. Using default properties...");
+        }
+        Channels channels = loadChannels(channelConfigPath);
+        config.getDynamicConfig().put("channels", channels);
+
+        //Added by Charles Chigoriwa
         final MediatorServer server = new MediatorServer(system, config);
 
         //setup shutdown hook

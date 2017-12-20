@@ -129,32 +129,35 @@ public class Channels {
 
     public void setProperties(Properties properties) {
         this.properties = properties;
+        syncFields();
     }
 
     public void setProperties(String resourceName) throws IOException {
         InputStream propsStream = getClass().getClassLoader().getResourceAsStream(resourceName);
         try {
             Properties props = new Properties();
-            props.load(propsStream);
+            properties.load(propsStream);
             setProperties(props);
-
-            this.dhisChannelScheme = props.getProperty("dhis.channel.scheme");
-            this.dhisChannelHost = props.getProperty("dhis.channel.host");
-            this.dhisChannelPort = Integer.parseInt(props.getProperty("dhis.channel.port"));
-            this.dhisChannelContextPath = props.getProperty("dhis.channel.context.path");
-            this.dhisChannelUser = props.getProperty("dhis.channel.user");
-            this.dhisChannelPassword = props.getProperty("dhis.channel.password");
-
-            this.epmsChannelScheme = props.getProperty("epms.channel.scheme");
-            this.epmsChannelHost = props.getProperty("epms.channel.host");
-            this.epmsChannelPort = Integer.parseInt(props.getProperty("epms.channel.port"));
-            this.epmsChannelContextPath = props.getProperty("epms.channel.context.path");
-            this.epmsChannelUser = props.getProperty("epms.channel.user");
-            this.epmsChannelPassword = props.getProperty("epms.channel.password");
 
         } finally {
             IOUtils.closeQuietly(propsStream);
         }
+    }
+
+    private void syncFields() {
+        this.dhisChannelScheme = properties.getProperty("dhis.channel.scheme");
+        this.dhisChannelHost = properties.getProperty("dhis.channel.host");
+        this.dhisChannelPort = Integer.parseInt(properties.getProperty("dhis.channel.port"));
+        this.dhisChannelContextPath = properties.getProperty("dhis.channel.context.path");
+        this.dhisChannelUser = properties.getProperty("dhis.channel.user");
+        this.dhisChannelPassword = properties.getProperty("dhis.channel.password");
+
+        this.epmsChannelScheme = properties.getProperty("epms.channel.scheme");
+        this.epmsChannelHost = properties.getProperty("epms.channel.host");
+        this.epmsChannelPort = Integer.parseInt(properties.getProperty("epms.channel.port"));
+        this.epmsChannelContextPath = properties.getProperty("epms.channel.context.path");
+        this.epmsChannelUser = properties.getProperty("epms.channel.user");
+        this.epmsChannelPassword = properties.getProperty("epms.channel.password");
     }
 
 }

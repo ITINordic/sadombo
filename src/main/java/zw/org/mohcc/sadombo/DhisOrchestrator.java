@@ -11,6 +11,7 @@ import java.util.Map;
 import org.openhim.mediator.engine.MediatorConfig;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPResponse;
+import zw.org.mohcc.sadombo.enricher.ADXDataEnricher;
 
 public class DhisOrchestrator extends UntypedActor {
 
@@ -22,8 +23,7 @@ public class DhisOrchestrator extends UntypedActor {
 
     public DhisOrchestrator(MediatorConfig config) throws IOException {
         this.config = config;
-        this.channels = new Channels();
-        this.channels.setProperties("openhim-channels.properties");
+        this.channels = (Channels) config.getDynamicConfig().get("channels");
     }
 
     @Override
@@ -40,14 +40,12 @@ public class DhisOrchestrator extends UntypedActor {
     private void queryDhisService(MediatorHTTPRequest request) {
         log.info("Querying the DHIS service");
         originalRequest = request;
-
+        String openHIMTransactionId = request.getHeaders().get("x-openhim-transactionid");
         ActorSelection httpConnector = getContext().actorSelection(config.userPathFor("http-connector"));
         Map<String, String> headers = new HashMap<>();
         String authorization = Base64.getEncoder().encodeToString((channels.getDhisChannelUser() + ":" + channels.getDhisChannelPassword()).getBytes());
         headers.putAll(copyHeaders(request.getHeaders()));
         headers.put("Authorization", "Basic " + authorization);
-
-        log.info("Querying the DHIS service");
 
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 request.getRequestHandler(),
@@ -58,7 +56,7 @@ public class DhisOrchestrator extends UntypedActor {
                 channels.getDhisChannelHost(),
                 channels.getDhisChannelPort(),
                 channels.getDhisChannelContextPath() + DhisUrlMapper.getDhisPath(request.getPath()),
-                request.getBody(),
+                ADXDataEnricher.enrich(request.getBody(), openHIMTransactionId, true),
                 headers,
                 request.getParams()
         );
