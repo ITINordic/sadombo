@@ -5,12 +5,14 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.testkit.JavaTestKit;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.*;
 import static org.junit.Assert.*;
 import org.openhim.mediator.engine.MediatorConfig;
 import org.openhim.mediator.engine.messages.FinishRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
+import scala.concurrent.duration.Duration;
 
 public class DefaultOrchestratorTest {
 
@@ -40,6 +42,7 @@ public class DefaultOrchestratorTest {
         new JavaTestKit(system) {
             {
                 final MediatorConfig testConfig = new MediatorConfig("sadombo", "localhost", 3000);
+                testConfig.getDynamicConfig().put("channels", new Channels());
                 final ActorRef defaultOrchestrator = system.actorOf(Props.create(DefaultOrchestrator.class, testConfig));
 
                 MediatorHTTPRequest POST_Request = new MediatorHTTPRequest(
@@ -59,7 +62,7 @@ public class DefaultOrchestratorTest {
                 defaultOrchestrator.tell(POST_Request, getRef());
 
                 final Object[] out
-                        = new ReceiveWhile<Object>(Object.class, duration("1 second")) {
+                        = new ReceiveWhile<Object>(Object.class, Duration.create(1, TimeUnit.SECONDS)) {
                             @Override
                             protected Object match(Object msg) throws Exception {
                                 if (msg instanceof FinishRequest) {

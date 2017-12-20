@@ -8,9 +8,12 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.http.HttpStatus;
 import org.openhim.mediator.engine.MediatorConfig;
+import org.openhim.mediator.engine.messages.FinishRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPResponse;
+import zw.org.mohcc.sadombo.data.util.GeneralUtility;
 import zw.org.mohcc.sadombo.enricher.ADXDataEnricher;
 
 public class DhisOrchestrator extends UntypedActor {
@@ -23,13 +26,19 @@ public class DhisOrchestrator extends UntypedActor {
 
     public DhisOrchestrator(MediatorConfig config) throws IOException {
         this.config = config;
-        this.channels = (Channels) config.getDynamicConfig().get("channels");
+        this.channels = GeneralUtility.getChannels(config);
     }
 
     @Override
     public void onReceive(Object msg) throws Exception {
         if (msg instanceof MediatorHTTPRequest) {
-            queryDhisService((MediatorHTTPRequest) msg);
+            MediatorHTTPRequest request = (MediatorHTTPRequest) msg;
+            if (GeneralUtility.isUserAllowed(request, config)) {
+                queryDhisService((MediatorHTTPRequest) msg);
+            } else {
+                FinishRequest finishRequest = new FinishRequest("Not allowed", "text/plain", HttpStatus.SC_FORBIDDEN);
+                request.getRequestHandler().tell(finishRequest, getSelf());
+            }
         } else if (msg instanceof MediatorHTTPResponse) {
             processDhisResponse((MediatorHTTPResponse) msg);
         } else {

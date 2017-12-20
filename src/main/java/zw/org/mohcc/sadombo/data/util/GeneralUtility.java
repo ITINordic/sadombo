@@ -3,9 +3,14 @@ package zw.org.mohcc.sadombo.data.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.Base64;
 import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.openhim.mediator.engine.MediatorConfig;
+import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
+import zw.org.mohcc.sadombo.Channels;
 
 /**
  *
@@ -44,6 +49,43 @@ public class GeneralUtility {
             }
         }
         return paramValue;
+    }
+
+    public static Credentials getCredentials(String authorization) {
+        // Authorization: Basic base64credentials
+        Credentials credentials = new Credentials();
+        String base64Credentials = authorization.substring("Basic".length()).trim();
+        String strCredentials = new String(Base64.getDecoder().decode(base64Credentials), Charset.forName("UTF-8"));
+        // credentials = username:password
+        final String[] values = strCredentials.split(":", 2);
+        credentials.setUsername(values[0]);
+        credentials.setPassword(values[1]);
+        return credentials;
+    }
+
+    public static Credentials getCredentials(MediatorHTTPRequest request) {
+        String authorization = request.getHeaders().get("Authorization");
+        authorization = authorization != null ? authorization : request.getHeaders().get("authorization");
+        if (authorization == null || authorization.trim().isEmpty()) {
+            return null;
+        } else {
+            return getCredentials(authorization);
+        }
+    }
+
+    public static Channels getChannels(MediatorConfig config) {
+        return (Channels) config.getDynamicConfig().get("channels");
+    }
+
+    public static boolean isUserAllowed(MediatorHTTPRequest request, MediatorConfig config) {
+        Channels channels = getChannels(config);
+        if (!channels.isSadomboAuthenticationEnabled()) {
+            return true;
+        } else {
+            Credentials sadomboCredentials = channels.getSadomboCredentials();
+            Credentials userCredentials = getCredentials(request);
+            return userCredentials != null && userCredentials.equals(sadomboCredentials);
+        }
     }
 
 }

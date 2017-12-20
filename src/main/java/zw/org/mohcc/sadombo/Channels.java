@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import org.apache.commons.io.IOUtils;
+import zw.org.mohcc.sadombo.data.util.Credentials;
 
 /**
  *
@@ -25,7 +26,13 @@ public class Channels {
     private String epmsChannelUser;
     private String epmsChannelPassword;
 
+    private boolean sadomboAuthenticationEnabled = false;
+    private Credentials sadomboCredentials = new Credentials();
+
     private Properties properties;
+
+    public Channels() {
+    }
 
     public String getDhisChannelScheme() {
         return dhisChannelScheme;
@@ -132,6 +139,22 @@ public class Channels {
         syncFields();
     }
 
+    public Credentials getSadomboCredentials() {
+        return sadomboCredentials;
+    }
+
+    public void setSadomboCredentials(Credentials sadomboCredentials) {
+        this.sadomboCredentials = sadomboCredentials;
+    }
+
+    public boolean isSadomboAuthenticationEnabled() {
+        return sadomboAuthenticationEnabled;
+    }
+
+    public void setSadomboAuthenticationEnabled(boolean sadomboAuthenticationEnabled) {
+        this.sadomboAuthenticationEnabled = sadomboAuthenticationEnabled;
+    }
+
     public void setProperties(String resourceName) throws IOException {
         InputStream propsStream = getClass().getClassLoader().getResourceAsStream(resourceName);
         try {
@@ -158,6 +181,10 @@ public class Channels {
         this.epmsChannelContextPath = properties.getProperty("epms.channel.context.path");
         this.epmsChannelUser = properties.getProperty("epms.channel.user");
         this.epmsChannelPassword = properties.getProperty("epms.channel.password");
+
+        this.sadomboAuthenticationEnabled = Boolean.valueOf(properties.getProperty("sadombo.authentication.enabled"));
+        this.sadomboCredentials.setUsername(properties.getProperty("sadombo.authentication.user"));
+        this.sadomboCredentials.setPassword(properties.getProperty("sadombo.authentication.password"));
     }
 
 }
