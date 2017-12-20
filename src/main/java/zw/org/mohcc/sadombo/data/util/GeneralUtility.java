@@ -18,6 +18,8 @@ import zw.org.mohcc.sadombo.Channels;
  */
 public class GeneralUtility {
 
+    public final static String ADX_CONTENT_TYPE = "application/adx+xml";
+
     public static String getPath(String contextPath) {
         String requestPath = "/";
         int firstIndexOf = contextPath.indexOf("/");
@@ -86,6 +88,11 @@ public class GeneralUtility {
             Credentials userCredentials = getCredentials(request);
             return userCredentials != null && userCredentials.equals(sadomboCredentials);
         }
+    }
+
+    public static boolean hasAdxContentType(MediatorHTTPRequest request) {
+        String contentType = request.getHeaders().get("content-type");
+        return contentType != null && contentType.trim().equalsIgnoreCase(ADX_CONTENT_TYPE);
     }
 
 }

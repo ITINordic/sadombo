@@ -56,6 +56,11 @@ public class DhisOrchestrator extends UntypedActor {
         headers.putAll(copyHeaders(request.getHeaders()));
         headers.put("Authorization", "Basic " + authorization);
 
+        String requestBody = request.getBody();
+        if (GeneralUtility.hasAdxContentType(request) && requestBody != null && !requestBody.trim().isEmpty()) {
+            requestBody = ADXDataEnricher.enrich(requestBody, openHIMTransactionId, true);
+        }
+
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 request.getRequestHandler(),
                 getSelf(),
@@ -65,7 +70,7 @@ public class DhisOrchestrator extends UntypedActor {
                 channels.getDhisChannelHost(),
                 channels.getDhisChannelPort(),
                 channels.getDhisChannelContextPath() + DhisUrlMapper.getDhisPath(request.getPath()),
-                ADXDataEnricher.enrich(request.getBody(), openHIMTransactionId, true),
+                requestBody,
                 headers,
                 request.getParams()
         );
