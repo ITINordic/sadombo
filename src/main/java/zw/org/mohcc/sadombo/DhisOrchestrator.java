@@ -14,7 +14,7 @@ import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPResponse;
 import zw.org.mohcc.sadombo.data.util.GeneralUtility;
 import static zw.org.mohcc.sadombo.data.util.GeneralUtility.getBasicAuthorization;
-import zw.org.mohcc.sadombo.enricher.ADXDataEnricher;
+import zw.org.mohcc.sadombo.enricher.DefaultADXDataEnricher;
 
 public class DhisOrchestrator extends UntypedActor {
 
@@ -52,13 +52,12 @@ public class DhisOrchestrator extends UntypedActor {
         String openHIMTransactionId = request.getHeaders().get("x-openhim-transactionid");
         ActorSelection httpConnector = getContext().actorSelection(config.userPathFor("http-connector"));
         Map<String, String> headers = new HashMap<>();
-        String basicAuthorization = getBasicAuthorization(channels.getDhisChannelUser(), channels.getDhisChannelPassword());
         headers.putAll(copyHeaders(request.getHeaders()));
-        headers.put("Authorization", basicAuthorization);
+        headers.put("Authorization", getBasicAuthorization(channels.getDhisChannelUser(), channels.getDhisChannelPassword()));
 
         String requestBody = request.getBody();
         if (GeneralUtility.hasAdxContentType(request) && requestBody != null && !requestBody.trim().isEmpty()) {
-            requestBody = ADXDataEnricher.enrich(requestBody, openHIMTransactionId, true);
+            requestBody = DefaultADXDataEnricher.enrich(requestBody, openHIMTransactionId, true);
         }
 
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(

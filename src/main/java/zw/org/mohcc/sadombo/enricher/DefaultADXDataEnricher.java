@@ -21,7 +21,7 @@ import zw.org.mohcc.sadombo.data.util.SampleDataUtility;
  *
  * @author Charles Chigoriwa
  */
-public class ADXDataEnricher {
+public class DefaultADXDataEnricher {
 
     public static void main(String[] args) throws Exception {
 
