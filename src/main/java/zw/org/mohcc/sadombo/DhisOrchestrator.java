@@ -80,7 +80,6 @@ public class DhisOrchestrator extends UntypedActor {
 
     private void processDhisResponse(MediatorHTTPResponse response) {
         log.info("Received response from DHIS service");
-        log.info(response.getBody());
         originalRequest.getRespondTo().tell(response.toFinishRequest(), getSelf());
     }
 
