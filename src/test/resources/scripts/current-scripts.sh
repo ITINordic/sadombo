@@ -15,6 +15,32 @@ curl -u admin:district "https://zim.dhis2.org/develop/api/dataSets/ZI7RVWq2o5X?f
 
 curl -u admin:district 'https://zim.dhis2.org/develop/api/categoryCombos/kEEowBVuzrP?fields=id,name,categories\[id,code,name,categoryOptions\[id,code,name\]\]' |jq . 
 
+## Districts (Organisation Units)
+### From Bob
+curl -u xxx:xxxx 'https://zim.dhis2.org/develop/api/organisationUnits.json?paging=false&filter=code:null:true&fields=name,id,code,parent\[name,code,id\]'
+
+######will pull all the orgunits with no codes assigned as xml.  And
+
+curl -u xxx:xxxx
+'https://zim.dhis2.org/develop/api/organisationUnits.xml?paging=false&filter=code:!ilike:ZW&fields=name,id,code,parent\[name,code,id\]'
+
+### will get ones with suspicious looking codes.  You could pipe into xslt to format nicely and group/sort by district.
+
+### Alternatively using json and jq:
+
+curl -u xxx:xxxx
+'https://zim.dhis2.org/develop/api/organisationUnits.json?paging=false&filter=code:!ilike:ZW&fields=name,id,code,parent\[name,code,id\]'
+| jq .organisationUnits |jq 'sort_by(.parent.code)'
+
+and
+
+curl -u xxx:xxxx 'https://zim.dhis2.org/develop/api/organisationUnits.json?paging=false&filter=code:!ilike:ZW&fields=name,id,code,parent\[name,code,id\]'
+| jq .organisationUnits |jq 'sort_by(.parent.code)'
+## End of Districts /Organization Units
+
+
+
+
 ## Critical
 curl -u admin:district "https://zim.dhis2.org/develop/api/dataSets/ZI7RVWq2o5X?fields=id,code,periodType,categoryCombo,dataSetElements\[categoryCombo,dataElement\[categoryCombo\]\]" | jq . 
 
