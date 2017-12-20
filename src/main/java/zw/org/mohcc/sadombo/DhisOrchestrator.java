@@ -5,7 +5,6 @@ import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import java.io.IOException;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.http.HttpStatus;
@@ -14,6 +13,7 @@ import org.openhim.mediator.engine.messages.FinishRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPResponse;
 import zw.org.mohcc.sadombo.data.util.GeneralUtility;
+import static zw.org.mohcc.sadombo.data.util.GeneralUtility.getBasicAuthorization;
 import zw.org.mohcc.sadombo.enricher.ADXDataEnricher;
 
 public class DhisOrchestrator extends UntypedActor {
@@ -52,9 +52,9 @@ public class DhisOrchestrator extends UntypedActor {
         String openHIMTransactionId = request.getHeaders().get("x-openhim-transactionid");
         ActorSelection httpConnector = getContext().actorSelection(config.userPathFor("http-connector"));
         Map<String, String> headers = new HashMap<>();
-        String authorization = Base64.getEncoder().encodeToString((channels.getDhisChannelUser() + ":" + channels.getDhisChannelPassword()).getBytes());
+        String basicAuthorization = getBasicAuthorization(channels.getDhisChannelUser(), channels.getDhisChannelPassword());
         headers.putAll(copyHeaders(request.getHeaders()));
-        headers.put("Authorization", "Basic " + authorization);
+        headers.put("Authorization", basicAuthorization);
 
         String requestBody = request.getBody();
         if (GeneralUtility.hasAdxContentType(request) && requestBody != null && !requestBody.trim().isEmpty()) {

@@ -95,4 +95,8 @@ public class GeneralUtility {
         return contentType != null && contentType.trim().equalsIgnoreCase(ADX_CONTENT_TYPE);
     }
 
+    public static String getBasicAuthorization(String username, String password) {
+        return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
+    }
+
 }

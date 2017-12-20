@@ -2,13 +2,13 @@ package zw.org.mohcc.sadombo.data;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.util.Base64;
 import java.util.List;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import static zw.org.mohcc.sadombo.data.util.GeneralUtility.getBasicAuthorization;
 
 /**
  *
@@ -78,10 +78,6 @@ public class DhisClient {
         } else {
             throw new RuntimeException(bodyString);
         }
-    }
-
-    public static String getBasicAuthorization(String username, String password) {
-        return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
     }
 
 }
