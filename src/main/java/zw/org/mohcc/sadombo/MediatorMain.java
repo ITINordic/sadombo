@@ -25,11 +25,8 @@ public class MediatorMain {
 
     private static MediatorConfig loadConfig(String configPath) throws IOException, RoutingTable.RouteAlreadyMappedException {
         MediatorConfig config = new MediatorConfig();
-        String mediatorHomeFilePath = System.getProperty("user.home") + File.separator + ".sadombo" + File.separator + "mediator.properties";
         if (configPath != null) {
             config.setProperties(GeneralUtility.loadProperties(configPath));
-        } else if (new File(mediatorHomeFilePath).exists()) {
-            config.setProperties(GeneralUtility.loadProperties(mediatorHomeFilePath));
         } else {
             config.setProperties("mediator.properties");
         }
@@ -62,11 +59,8 @@ public class MediatorMain {
 
     private static Channels loadChannels(String channelConfigPath) throws IOException {
         Channels channels = new Channels();
-        String channelHomeFilePath = System.getProperty("user.home") + File.separator + ".sadombo" + File.separator + "openhim-channels.properties";
         if (channelConfigPath != null) {
             channels.setProperties(GeneralUtility.loadProperties(channelConfigPath));
-        } else if (new File(channelHomeFilePath).exists()) {
-            channels.setProperties(GeneralUtility.loadProperties(channelHomeFilePath));
         } else {
             channels.setProperties("openhim-channels.properties");
         }
@@ -83,21 +77,10 @@ public class MediatorMain {
         //setup actors
         log.info("Initializing mediator actors...");
 
-        String configPath = GeneralUtility.getParamValue(args, "--conf");
-        if (configPath != null) {
-            log.info("Loading mediator configuration from '" + configPath + "'...");
-        } else {
-            log.info("No configuration specified. Using default properties...");
-        }
-
+        String configPath = findConfigPath(args, log);
         MediatorConfig config = loadConfig(configPath);
 
-        String channelConfigPath = GeneralUtility.getParamValue(args, "--chan-conf");
-        if (channelConfigPath != null) {
-            log.info("Loading channels configuration from '" + channelConfigPath + "'...");
-        } else {
-            log.info("No channels configuration specified. Using default properties...");
-        }
+        String channelConfigPath = findChannelConfigPath(args, log);
         Channels channels = loadChannels(channelConfigPath);
         config.getDynamicConfig().put("channels", channels);
 
@@ -119,5 +102,33 @@ public class MediatorMain {
 
         log.info(String.format("%s listening on %s:%s", config.getName(), config.getServerHost(), config.getServerPort()));
         Thread.currentThread().join();
+    }
+
+    private static String findConfigPath(String[] args, LoggingAdapter log) {
+        String configPath = GeneralUtility.getParamValue(args, "--conf");
+        String mediatorHomeFilePath = System.getProperty("user.home") + File.separator + ".sadombo" + File.separator + "mediator.properties";
+        if (configPath != null) {
+            log.info("Loading mediator configuration from '" + configPath + "'...");
+        } else if (new File(mediatorHomeFilePath).exists()) {
+            configPath = mediatorHomeFilePath;
+            log.info("Loading channels configuration from '" + mediatorHomeFilePath + "'...");
+        } else {
+            log.info("No configuration specified. Using default properties...");
+        }
+        return configPath;
+    }
+
+    private static String findChannelConfigPath(String[] args, LoggingAdapter log) {
+        String channelConfigPath = GeneralUtility.getParamValue(args, "--chan-conf");
+        String channelHomeFilePath = System.getProperty("user.home") + File.separator + ".sadombo" + File.separator + "openhim-channels.properties";
+        if (channelConfigPath != null) {
+            log.info("Loading channels configuration from '" + channelConfigPath + "'...");
+        } else if (new File(channelHomeFilePath).exists()) {
+            channelConfigPath = channelHomeFilePath;
+            log.info("Loading channels configuration from '" + channelHomeFilePath + "'...");
+        } else {
+            log.info("No channels configuration specified. Using default properties...");
+        }
+        return channelConfigPath;
     }
 }
