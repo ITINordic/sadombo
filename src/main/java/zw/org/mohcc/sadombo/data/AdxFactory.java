@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import javax.lang.model.SourceVersion;
+import zw.org.mohcc.sadombo.Channels;
+import zw.org.mohcc.sadombo.utils.ConfigUtility;
 
 /**
  *
@@ -17,13 +19,12 @@ import javax.lang.model.SourceVersion;
 public class AdxFactory {
 
     public static void main(String[] args) throws IOException {
-        //System.out.println(getAdxXsd("ATB_005 or ATB_002 or ATB_003 or ATB_010"));
-        //System.out.println(getXsdDataEntryTemplate("ATB_005"));
-        System.out.println(getXsdDataEntryTemplate("ATB_010"));
+        Channels channels = ConfigUtility.loadChannels(args, null);
+        System.out.println(getXsdDataEntryTemplate("ATB_010", channels));
     }
 
-    public static String getAdxXsd(String dataSetCode) throws IOException {
-        DataSet dataSet = DhisClient.getDataSetByCode(dataSetCode);
+    public static String getAdxXsd(String dataSetCode, Channels channels) throws IOException {
+        DataSet dataSet = DhisClient.getDataSetByCode(dataSetCode, channels);
         if (dataSet == null) {
             return null;
         }
@@ -55,7 +56,7 @@ public class AdxFactory {
         Set<CategoryCombo> inflatedDataElementCategoryCombos = new HashSet<>();
 
         for (CategoryCombo categoryCombo : dataSet.dataSetElementCategoryCombos()) {
-            inflatedDataElementCategoryCombos.add(DhisClient.getCategoryComboById(categoryCombo.getId()));
+            inflatedDataElementCategoryCombos.add(DhisClient.getCategoryComboById(categoryCombo.getId(), channels));
         }
 
         Set<Category> categories = getCategories(inflatedDataElementCategoryCombos);
@@ -118,15 +119,15 @@ public class AdxFactory {
         return sb.toString();
     }
 
-    public static String getXsdDataEntryTemplate(String dataSetCode) throws IOException {
-        DataSet dataSet = DhisClient.getDataSetByCode(dataSetCode);
+    public static String getXsdDataEntryTemplate(String dataSetCode, Channels channels) throws IOException {
+        DataSet dataSet = DhisClient.getDataSetByCode(dataSetCode, channels);
         if (dataSet == null) {
             return null;
         }
         Set<CategoryCombo> inflatedDataElementCategoryCombos = new HashSet<>();
 
         for (CategoryCombo categoryCombo : dataSet.dataSetElementCategoryCombos()) {
-            inflatedDataElementCategoryCombos.add(DhisClient.getCategoryComboById(categoryCombo.getId()));
+            inflatedDataElementCategoryCombos.add(DhisClient.getCategoryComboById(categoryCombo.getId(), channels));
         }
 
         Set<Category> categories = getCategories(inflatedDataElementCategoryCombos);

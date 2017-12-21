@@ -3,10 +3,11 @@ package zw.org.mohcc.sadombo;
 import akka.actor.ActorSystem;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import org.openhim.mediator.engine.*;
+import static zw.org.mohcc.sadombo.utils.ConfigUtility.findConfigPath;
+import static zw.org.mohcc.sadombo.utils.ConfigUtility.loadChannels;
 import zw.org.mohcc.sadombo.utils.GeneralUtility;
 
 public class MediatorMain {
@@ -57,17 +58,6 @@ public class MediatorMain {
         return config;
     }
 
-    private static Channels loadChannels(String channelConfigPath) throws IOException {
-        Channels channels = new Channels();
-        if (channelConfigPath != null) {
-            channels.setProperties(GeneralUtility.loadProperties(channelConfigPath));
-        } else {
-            channels.setProperties("openhim-channels.properties");
-        }
-        return channels;
-
-    }
-
     public static void main(String... args) throws Exception {
         //setup actor system
         final ActorSystem system = ActorSystem.create("mediator");
@@ -80,8 +70,7 @@ public class MediatorMain {
         String configPath = findConfigPath(args, log);
         MediatorConfig config = loadConfig(configPath);
 
-        String channelConfigPath = findChannelConfigPath(args, log);
-        Channels channels = loadChannels(channelConfigPath);
+        Channels channels = loadChannels(args, log);
         config.getDynamicConfig().put("channels", channels);
 
         //Added by Charles Chigoriwa
@@ -104,31 +93,4 @@ public class MediatorMain {
         Thread.currentThread().join();
     }
 
-    private static String findConfigPath(String[] args, LoggingAdapter log) {
-        String configPath = GeneralUtility.getParamValue(args, "--conf");
-        String mediatorHomeFilePath = System.getProperty("user.home") + File.separator + ".sadombo" + File.separator + "mediator.properties";
-        if (configPath != null) {
-            log.info("Loading mediator configuration from '" + configPath + "'...");
-        } else if (new File(mediatorHomeFilePath).exists()) {
-            configPath = mediatorHomeFilePath;
-            log.info("Loading channels configuration from '" + mediatorHomeFilePath + "'...");
-        } else {
-            log.info("No configuration specified. Using default properties...");
-        }
-        return configPath;
-    }
-
-    private static String findChannelConfigPath(String[] args, LoggingAdapter log) {
-        String channelConfigPath = GeneralUtility.getParamValue(args, "--chan-conf");
-        String channelHomeFilePath = System.getProperty("user.home") + File.separator + ".sadombo" + File.separator + "openhim-channels.properties";
-        if (channelConfigPath != null) {
-            log.info("Loading channels configuration from '" + channelConfigPath + "'...");
-        } else if (new File(channelHomeFilePath).exists()) {
-            channelConfigPath = channelHomeFilePath;
-            log.info("Loading channels configuration from '" + channelHomeFilePath + "'...");
-        } else {
-            log.info("No channels configuration specified. Using default properties...");
-        }
-        return channelConfigPath;
-    }
 }

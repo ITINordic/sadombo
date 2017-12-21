@@ -8,6 +8,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import zw.org.mohcc.sadombo.Channels;
+import zw.org.mohcc.sadombo.SadomboException;
+import zw.org.mohcc.sadombo.utils.ConfigUtility;
 import static zw.org.mohcc.sadombo.utils.GeneralUtility.getBasicAuthorization;
 
 /**
@@ -17,15 +20,17 @@ import static zw.org.mohcc.sadombo.utils.GeneralUtility.getBasicAuthorization;
 public class DhisClient {
 
     public static void main(String[] args) throws IOException {
-        System.out.println(getCategoryComboById("Yqri7Qy4PhY"));
+        Channels channels = ConfigUtility.loadChannels(args, null);
+        System.out.println(getCategoryComboById("Yqri7Qy4PhY", channels));
 
     }
 
-    public static DataSet getDataSetByCode(String code) throws IOException {
-        String username = "cchigoriwa";
-        String password = "Test1234";
+    public static DataSet getDataSetByCode(String code, Channels channels) throws IOException {
 
-        HttpUrl.Builder urlBuilder = HttpUrl.parse("https://zim.dhis2.org/develop/api/dataSets").newBuilder();
+        String username = channels.getDhisChannelUser();
+        String password = channels.getDhisChannelPassword();
+
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(channels.getDhisBaseUrl() + "/api/dataSets").newBuilder();
         urlBuilder.addQueryParameter("filter", "code:eq:" + code);
         urlBuilder.addQueryParameter("fields", "id,code,periodType,categoryCombo,dataSetElements[categoryCombo,dataElement[id,name,code,categoryCombo]],organisationUnits[id,code,name]");
         urlBuilder.addQueryParameter("paging", "false");
@@ -49,16 +54,16 @@ public class DhisClient {
             }
             return dataSet;
         } else {
-            throw new RuntimeException(bodyString);
+            throw new SadomboException(bodyString);
         }
     }
 
-    public static CategoryCombo getCategoryComboById(String id) throws IOException {
+    public static CategoryCombo getCategoryComboById(String id, Channels channels) throws IOException {
 
-        String username = "cchigoriwa";
-        String password = "Test1234";
+        String username = channels.getDhisChannelUser();
+        String password = channels.getDhisChannelPassword();
 
-        HttpUrl.Builder urlBuilder = HttpUrl.parse("https://zim.dhis2.org/develop/api/categoryCombos/" + id).newBuilder();
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(channels.getDhisBaseUrl() + "/api/categoryCombos/" + id).newBuilder();
         urlBuilder.addQueryParameter("fields", "id,code,name,categories[id,code,name,categoryOptions[id,code,name]]");
         urlBuilder.addQueryParameter("paging", "false");
         String url = urlBuilder.build().toString();
@@ -76,7 +81,7 @@ public class DhisClient {
             return mapper.readValue(bodyString, CategoryCombo.class);
 
         } else {
-            throw new RuntimeException(bodyString);
+            throw new SadomboException(bodyString);
         }
     }
 

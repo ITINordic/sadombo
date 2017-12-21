@@ -187,4 +187,12 @@ public class Channels {
         this.sadomboCredentials.setPassword(properties.getProperty("sadombo.authentication.password"));
     }
 
+    public String getDhisBaseUrl() {
+        return dhisChannelScheme + "://" + dhisChannelHost + ":" + dhisChannelPort + dhisChannelContextPath;
+    }
+
+    public String getEpmsBaseUrl() {
+        return epmsChannelScheme + "://" + epmsChannelHost + ":" + epmsChannelPort + epmsChannelContextPath;
+    }
+
 }
