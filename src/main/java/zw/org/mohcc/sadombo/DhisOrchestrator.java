@@ -70,7 +70,7 @@ public class DhisOrchestrator extends UntypedActor {
 
         if (hasAdxContentType && !isContentConformingToBasicAdxXsd) {
             String content = GeneralUtility.getMessageForNonAdxContent(openHIMTransactionId);
-            FinishRequest finishRequest = new FinishRequest(content, "application/xml", HttpStatus.SC_FORBIDDEN);
+            FinishRequest finishRequest = new FinishRequest(content, "application/xml", HttpStatus.SC_UNPROCESSABLE_ENTITY);
             request.getRequestHandler().tell(finishRequest, getSelf());
         } else {
 
