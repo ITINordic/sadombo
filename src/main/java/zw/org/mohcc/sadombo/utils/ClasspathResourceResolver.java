@@ -18,8 +18,7 @@ public class ClasspathResourceResolver implements LSResourceResolver {
 
         LSInputImpl input = new LSInputImpl();
 
-        System.out.println("SystemId=" + systemId);
-
+        //System.out.println("SystemId=" + systemId);
         InputStream stream = getClass().getClassLoader().getResourceAsStream(systemId);
 
         input.setPublicId(publicId);
