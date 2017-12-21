@@ -7,7 +7,7 @@ import org.apache.http.HttpStatus;
 import org.openhim.mediator.engine.MediatorConfig;
 import org.openhim.mediator.engine.messages.FinishRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
-import zw.org.mohcc.sadombo.data.util.GeneralUtility;
+import zw.org.mohcc.sadombo.utils.GeneralUtility;
 
 public class DefaultOrchestrator extends UntypedActor {
 

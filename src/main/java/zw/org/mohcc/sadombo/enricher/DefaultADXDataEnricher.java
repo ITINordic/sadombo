@@ -15,7 +15,7 @@ import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import zw.org.mohcc.sadombo.SadomboException;
-import zw.org.mohcc.sadombo.data.util.SampleDataUtility;
+import zw.org.mohcc.sadombo.utils.SampleDataUtility;
 
 /**
  *

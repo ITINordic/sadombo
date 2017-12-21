@@ -8,7 +8,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import static zw.org.mohcc.sadombo.data.util.GeneralUtility.getBasicAuthorization;
+import static zw.org.mohcc.sadombo.utils.GeneralUtility.getBasicAuthorization;
 
 /**
  *

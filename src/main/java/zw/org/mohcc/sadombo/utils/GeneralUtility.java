@@ -1,4 +1,4 @@
-package zw.org.mohcc.sadombo.data.util;
+package zw.org.mohcc.sadombo.utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -97,6 +97,15 @@ public class GeneralUtility {
 
     public static String getBasicAuthorization(String username, String password) {
         return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
+    }
+
+    public static String getMessageForNonAdxContent(String transactionId) {
+        return "<?xml version='1.0' encoding='UTF-8'?>\n"
+                + "<importSummary \n"
+                + "  xmlns=\"http://dhis2.org/schema/dxf/2.0\" responseType=\"ImportSummary\" source=\"OpenHIM\" transactionId=\"" + transactionId + "\">\n"
+                + " <status>FAILED_BASIC_ADX_VALIDATION</status>\n"
+                + " <description>Failed Basic ADX xsd validation. Message not passed to the server</description>\n"
+                + "</importSummary>";
     }
 
 }

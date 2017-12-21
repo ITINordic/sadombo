@@ -1,6 +1,6 @@
 package zw.org.mohcc.sadombo;
 
-import zw.org.mohcc.sadombo.data.util.GeneralUtility;
+import zw.org.mohcc.sadombo.utils.GeneralUtility;
 
 /**
  *

@@ -12,9 +12,10 @@ import org.openhim.mediator.engine.MediatorConfig;
 import org.openhim.mediator.engine.messages.FinishRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPResponse;
-import zw.org.mohcc.sadombo.data.util.GeneralUtility;
-import static zw.org.mohcc.sadombo.data.util.GeneralUtility.getBasicAuthorization;
 import zw.org.mohcc.sadombo.enricher.DefaultADXDataEnricher;
+import zw.org.mohcc.sadombo.utils.GeneralUtility;
+import static zw.org.mohcc.sadombo.utils.GeneralUtility.getBasicAuthorization;
+import zw.org.mohcc.sadombo.validator.AdxXsdValidator;
 
 public class DhisOrchestrator extends UntypedActor {
 
@@ -47,6 +48,8 @@ public class DhisOrchestrator extends UntypedActor {
     }
 
     private void queryDhisService(MediatorHTTPRequest request) {
+        boolean hasAdxContentType = GeneralUtility.hasAdxContentType(request);
+        boolean isContentConformingToBasicAdxXsd = false;
         log.info("Querying the DHIS service");
         originalRequest = request;
         String openHIMTransactionId = request.getHeaders().get("x-openhim-transactionid");
@@ -56,25 +59,37 @@ public class DhisOrchestrator extends UntypedActor {
         headers.put("Authorization", getBasicAuthorization(channels.getDhisChannelUser(), channels.getDhisChannelPassword()));
 
         String requestBody = request.getBody();
-        if (GeneralUtility.hasAdxContentType(request) && requestBody != null && !requestBody.trim().isEmpty()) {
-            requestBody = DefaultADXDataEnricher.enrich(requestBody, openHIMTransactionId, true);
+        if (hasAdxContentType && requestBody != null && !requestBody.trim().isEmpty()) {
+            //Validation
+            isContentConformingToBasicAdxXsd = AdxXsdValidator.isConformingToBasicAdxXsd(requestBody);
+            if (isContentConformingToBasicAdxXsd) {
+                //Enrichment: Add a comment
+                requestBody = DefaultADXDataEnricher.enrich(requestBody, openHIMTransactionId, true);
+            }
         }
 
-        MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
-                request.getRequestHandler(),
-                getSelf(),
-                "DHIS Service",
-                request.getMethod(),
-                channels.getDhisChannelScheme(),
-                channels.getDhisChannelHost(),
-                channels.getDhisChannelPort(),
-                channels.getDhisChannelContextPath() + DhisUrlMapper.getDhisPath(request.getPath()),
-                requestBody,
-                headers,
-                request.getParams()
-        );
+        if (hasAdxContentType && !isContentConformingToBasicAdxXsd) {
+            String content = GeneralUtility.getMessageForNonAdxContent(openHIMTransactionId);
+            FinishRequest finishRequest = new FinishRequest(content, "application/xml", HttpStatus.SC_FORBIDDEN);
+            request.getRequestHandler().tell(finishRequest, getSelf());
+        } else {
 
-        httpConnector.tell(serviceRequest, getSelf());
+            MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
+                    request.getRequestHandler(),
+                    getSelf(),
+                    "DHIS Service",
+                    request.getMethod(),
+                    channels.getDhisChannelScheme(),
+                    channels.getDhisChannelHost(),
+                    channels.getDhisChannelPort(),
+                    channels.getDhisChannelContextPath() + DhisUrlMapper.getDhisPath(request.getPath()),
+                    requestBody,
+                    headers,
+                    request.getParams()
+            );
+
+            httpConnector.tell(serviceRequest, getSelf());
+        }
     }
 
     private void processDhisResponse(MediatorHTTPResponse response) {

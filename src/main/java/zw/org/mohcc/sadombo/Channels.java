@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import org.apache.commons.io.IOUtils;
-import zw.org.mohcc.sadombo.data.util.Credentials;
+import zw.org.mohcc.sadombo.utils.Credentials;
 
 /**
  *

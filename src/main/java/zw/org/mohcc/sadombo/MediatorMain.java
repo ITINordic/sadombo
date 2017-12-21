@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import org.openhim.mediator.engine.*;
-import zw.org.mohcc.sadombo.data.util.GeneralUtility;
+import zw.org.mohcc.sadombo.utils.GeneralUtility;
 
 public class MediatorMain {
 

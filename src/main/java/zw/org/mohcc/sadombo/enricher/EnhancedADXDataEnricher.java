@@ -12,7 +12,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import zw.org.mohcc.sadombo.SadomboException;
-import zw.org.mohcc.sadombo.data.util.SampleDataUtility;
+import zw.org.mohcc.sadombo.utils.SampleDataUtility;
 
 /**
  *
