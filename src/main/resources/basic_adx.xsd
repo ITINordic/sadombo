@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns="urn:ihe:qrph:adx:2015" xmlns:common="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:str="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure" targetNamespace="urn:ihe:qrph:adx:2015" elementFormDefault="qualified">
+    <xs:annotation>
+        <xs:documentation> 
+            This a basic adx xsd 
+        </xs:documentation>
+    </xs:annotation>
+    <xs:import namespace="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common" schemaLocation="sdmx/SDMXCommon.xsd"/>
+ 
+<xs:simpleType name="periodType">
+    <xs:restriction base="common:TimeRangeType"/>
+</xs:simpleType>
+<xs:complexType name="adxType">
+    <xs:sequence maxOccurs="unbounded">
+        <xs:element name="group" type="groupType"/>
+    </xs:sequence>
+    <xs:anyAttribute processContents="skip"/>
+</xs:complexType>
+<xs:complexType name="groupType">
+    <xs:sequence maxOccurs="unbounded">
+        <xs:element name="dataValue" type="DataValueType"/>
+    </xs:sequence>
+    <xs:attribute name="dataSet" use="required" type="xs:string" />
+    <xs:attribute name="orgUnit" use="required" type="xs:string" />
+    <xs:attribute name="period" use="required" type="periodType"/>
+    <xs:anyAttribute processContents="skip"/>
+</xs:complexType>
+<xs:complexType name="DataValueType">
+    <xs:sequence maxOccurs="1" minOccurs="0">
+        <xs:element name="annotation"/>
+    </xs:sequence>
+    <xs:attribute name="dataElement" use="required" type="xs:string"/>
+    <xs:attribute name="value" use="required" type="xs:decimal"/>
+    <xs:anyAttribute processContents="skip"/>
+</xs:complexType>
+<xs:element name="adx" type="adxType"/>
+</xs:schema>

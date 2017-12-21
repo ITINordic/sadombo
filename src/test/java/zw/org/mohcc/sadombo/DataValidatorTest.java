@@ -17,9 +17,23 @@ import zw.org.mohcc.sadombo.utils.ClasspathResourceResolver;
  */
 public class DataValidatorTest {
 
-    //@Ignore
     @Test
-    public void test() throws SAXException, IOException {
+    public void testWithBasicAxdXsd() throws SAXException, IOException {
+
+        InputStream xsdInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("basic_adx.xsd");
+        InputStream xmlInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("sample_data.xml");
+
+        SchemaFactory factory
+                = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        factory.setResourceResolver(new ClasspathResourceResolver());
+        Schema schema = factory.newSchema(new StreamSource(xsdInputStream));
+        Validator validator = schema.newValidator();
+        validator.validate(new StreamSource(xmlInputStream));
+
+    }
+
+    @Test
+    public void testWithFullAxdXsd() throws SAXException, IOException {
 
         InputStream xsdInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("ATB_005.xsd");
         InputStream xmlInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("sample_data.xml");
