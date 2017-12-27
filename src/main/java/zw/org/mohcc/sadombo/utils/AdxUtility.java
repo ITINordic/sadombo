@@ -9,6 +9,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.apache.commons.io.IOUtils;
+import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 import zw.org.mohcc.sadombo.MediatorMain;
@@ -19,6 +20,13 @@ import static zw.org.mohcc.sadombo.utils.GeneralUtility.validateXml;
  * @author Charles Chigoriwa
  */
 public class AdxUtility {
+
+    public final static String ADX_CONTENT_TYPE = "application/adx+xml";
+
+    public static boolean hasAdxContentType(MediatorHTTPRequest request) {
+        String contentType = request.getHeaders().get("content-type");
+        return contentType != null && contentType.trim().equalsIgnoreCase(ADX_CONTENT_TYPE);
+    }
 
     public static boolean isConformingToBasicAdxXsd(String adxContent) {
         try {

@@ -12,7 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import zw.org.mohcc.sadombo.MediatorMain;
-import zw.org.mohcc.sadombo.utils.GeneralUtility;
+import zw.org.mohcc.sadombo.utils.AdxUtility;
 import zw.org.mohcc.sadombo.utils.SampleDataUtility;
 
 /**
@@ -24,14 +24,14 @@ public class DefaultRequestValidatorTest {
     @Test
     public void emptyBody() {
         DefaultRequestValidator requestValidator = new DefaultRequestValidator();
-        MediatorHTTPRequest request = getMediatorHTTPRequest("", GeneralUtility.ADX_CONTENT_TYPE);
+        MediatorHTTPRequest request = getMediatorHTTPRequest("", AdxUtility.ADX_CONTENT_TYPE);
         Assert.assertFalse(requestValidator.validate(request).isValid());
     }
 
     @Test
     public void validStringBody() {
         DefaultRequestValidator requestValidator = new DefaultRequestValidator();
-        MediatorHTTPRequest request = getMediatorHTTPRequest(SampleDataUtility.getAdxSampleData(), GeneralUtility.ADX_CONTENT_TYPE);
+        MediatorHTTPRequest request = getMediatorHTTPRequest(SampleDataUtility.getAdxSampleData(), AdxUtility.ADX_CONTENT_TYPE);
         Assert.assertTrue(requestValidator.validate(request).isValid());
     }
 
@@ -39,21 +39,21 @@ public class DefaultRequestValidatorTest {
     public void validInputStream() throws IOException {
         DefaultRequestValidator requestValidator = new DefaultRequestValidator();
         InputStream xmlInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("sample_data.xml");
-        MediatorHTTPRequest request = getMediatorHTTPRequest(IOUtils.toString(xmlInputStream), GeneralUtility.ADX_CONTENT_TYPE);
+        MediatorHTTPRequest request = getMediatorHTTPRequest(IOUtils.toString(xmlInputStream), AdxUtility.ADX_CONTENT_TYPE);
         Assert.assertTrue(requestValidator.validate(request).isValid());
     }
 
     @Test
     public void nonAxdCompliantStringBody() {
         DefaultRequestValidator requestValidator = new DefaultRequestValidator();
-        MediatorHTTPRequest request = getMediatorHTTPRequest(SampleDataUtility.getAdxSampleDataNonXsdCompliant(), GeneralUtility.ADX_CONTENT_TYPE);
+        MediatorHTTPRequest request = getMediatorHTTPRequest(SampleDataUtility.getAdxSampleDataNonXsdCompliant(), AdxUtility.ADX_CONTENT_TYPE);
         Assert.assertFalse(requestValidator.validate(request).isValid());
     }
 
     @Test
     public void nonXmlBody() {
         DefaultRequestValidator requestValidator = new DefaultRequestValidator();
-        MediatorHTTPRequest request = getMediatorHTTPRequest("I would like to learn about Adx", GeneralUtility.ADX_CONTENT_TYPE);
+        MediatorHTTPRequest request = getMediatorHTTPRequest("I would like to learn about Adx", AdxUtility.ADX_CONTENT_TYPE);
         Assert.assertFalse(requestValidator.validate(request).isValid());
     }
 
@@ -61,7 +61,7 @@ public class DefaultRequestValidatorTest {
     public void nonAxdCompliantInputStream() throws IOException {
         DefaultRequestValidator requestValidator = new DefaultRequestValidator();
         InputStream xmlInputStream = MediatorMain.class.getClassLoader().getResourceAsStream("sample_data_non_compliant.xml");
-        MediatorHTTPRequest request = getMediatorHTTPRequest(IOUtils.toString(xmlInputStream), GeneralUtility.ADX_CONTENT_TYPE);
+        MediatorHTTPRequest request = getMediatorHTTPRequest(IOUtils.toString(xmlInputStream), AdxUtility.ADX_CONTENT_TYPE);
         Assert.assertFalse(requestValidator.validate(request).isValid());
     }
 

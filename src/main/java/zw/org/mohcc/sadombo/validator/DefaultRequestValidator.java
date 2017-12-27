@@ -2,6 +2,7 @@ package zw.org.mohcc.sadombo.validator;
 
 import org.apache.http.HttpStatus;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
+import zw.org.mohcc.sadombo.utils.AdxUtility;
 import static zw.org.mohcc.sadombo.utils.AdxUtility.isConformingToBasicAdxXsd;
 import zw.org.mohcc.sadombo.utils.GeneralUtility;
 
@@ -13,7 +14,7 @@ public class DefaultRequestValidator extends RequestValidator {
 
     @Override
     public Validation validate(MediatorHTTPRequest request) {
-        if (GeneralUtility.hasAdxContentType(request)) {
+        if (AdxUtility.hasAdxContentType(request)) {
             return validateAdxRequest(request);
         } else {
             return Validation.getValidationWithNoErrors();

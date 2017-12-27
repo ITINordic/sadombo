@@ -14,8 +14,8 @@ import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+import static zw.org.mohcc.sadombo.utils.AdxUtility.ADX_CONTENT_TYPE;
 import zw.org.mohcc.sadombo.utils.GeneralUtility;
-import static zw.org.mohcc.sadombo.utils.GeneralUtility.ADX_CONTENT_TYPE;
 import zw.org.mohcc.sadombo.utils.SampleDataUtility;
 
 /**

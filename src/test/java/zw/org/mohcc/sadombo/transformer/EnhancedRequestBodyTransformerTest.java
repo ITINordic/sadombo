@@ -14,8 +14,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
+import static zw.org.mohcc.sadombo.utils.AdxUtility.ADX_CONTENT_TYPE;
 import zw.org.mohcc.sadombo.utils.GeneralUtility;
-import static zw.org.mohcc.sadombo.utils.GeneralUtility.ADX_CONTENT_TYPE;
 import zw.org.mohcc.sadombo.utils.SampleDataUtility;
 
 /**

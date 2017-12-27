@@ -35,8 +35,6 @@ import org.xml.sax.SAXException;
  */
 public class GeneralUtility {
 
-    public final static String ADX_CONTENT_TYPE = "application/adx+xml";
-
     public static Properties loadProperties(String filePath) throws IOException {
         Properties props = new Properties();
         File file = new File(filePath);
@@ -83,11 +81,6 @@ public class GeneralUtility {
         } else {
             return getCredentials(authorization);
         }
-    }
-
-    public static boolean hasAdxContentType(MediatorHTTPRequest request) {
-        String contentType = request.getHeaders().get("content-type");
-        return contentType != null && contentType.trim().equalsIgnoreCase(ADX_CONTENT_TYPE);
     }
 
     public static boolean hasMethod(MediatorHTTPRequest request, String method) {

@@ -10,6 +10,7 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import zw.org.mohcc.sadombo.SadomboException;
+import zw.org.mohcc.sadombo.utils.AdxUtility;
 import zw.org.mohcc.sadombo.utils.GeneralUtility;
 
 /**
@@ -20,7 +21,7 @@ public class EnhancedRequestBodyTransformer extends RequestBodyTransformer {
 
     @Override
     public String transformRequestBody(MediatorHTTPRequest request) {
-        if (GeneralUtility.hasAdxContentType(request) && !GeneralUtility.hasEmptyRequestBody(request)) {
+        if (AdxUtility.hasAdxContentType(request) && !GeneralUtility.hasEmptyRequestBody(request)) {
             return transformAdxRequestBody(request);
         } else {
             return request.getBody();

@@ -17,6 +17,12 @@ public class Validation {
     public Validation() {
     }
 
+    public Validation(boolean valid, String errorMessage, Integer httpStatus) {
+        this.valid = valid;
+        this.errorMessage = errorMessage;
+        this.httpStatus = httpStatus;
+    }
+
     public boolean isValid() {
         return valid;
     }

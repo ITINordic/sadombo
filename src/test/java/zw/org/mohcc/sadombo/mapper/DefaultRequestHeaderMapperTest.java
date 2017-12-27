@@ -8,7 +8,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
-import static zw.org.mohcc.sadombo.utils.GeneralUtility.ADX_CONTENT_TYPE;
+import static zw.org.mohcc.sadombo.utils.AdxUtility.ADX_CONTENT_TYPE;
 
 /**
  *
