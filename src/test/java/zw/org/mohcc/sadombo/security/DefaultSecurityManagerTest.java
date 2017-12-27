@@ -79,6 +79,15 @@ public class DefaultSecurityManagerTest {
         assertFalse(defaultSecurityManager.isUserAllowed(request, testConfig));
     }
 
+    @Test
+    public void testWithoutCredentials() {
+        Channels channels = ConfigUtility.getChannels(testConfig);
+        when(channels.isSadomboAuthenticationEnabled()).thenReturn(true);
+        when(channels.getSadomboCredentials()).thenReturn(new Credentials("user", "password"));
+        MediatorHTTPRequest request = getMediatorHTTPRequest(null, null);
+        assertFalse(defaultSecurityManager.isUserAllowed(request, testConfig));
+    }
+
     private MediatorHTTPRequest getMediatorHTTPRequest(String username, String password) {
         String path = "/dhis-mediator/api/dataSets";
         String body = null;
