@@ -1,21 +1,28 @@
 package zw.org.mohcc.sadombo;
 
+import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import org.apache.http.HttpStatus;
 import org.openhim.mediator.engine.MediatorConfig;
+import org.openhim.mediator.engine.messages.ExceptError;
 import org.openhim.mediator.engine.messages.FinishRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPResponse;
-import zw.org.mohcc.sadombo.enricher.DefaultADXDataEnricher;
-import zw.org.mohcc.sadombo.utils.GeneralUtility;
+import zw.org.mohcc.sadombo.mapper.RequestHeaderMapper;
+import zw.org.mohcc.sadombo.mapper.RequestTarget;
+import zw.org.mohcc.sadombo.mapper.RequestTargetMapper;
+import zw.org.mohcc.sadombo.security.SecurityManager;
+import zw.org.mohcc.sadombo.transformer.RequestBodyTransformer;
+import zw.org.mohcc.sadombo.transformer.ResponseTransformer;
+import zw.org.mohcc.sadombo.utils.ConfigUtility;
 import static zw.org.mohcc.sadombo.utils.GeneralUtility.getBasicAuthorization;
-import zw.org.mohcc.sadombo.validator.AdxXsdValidator;
+import zw.org.mohcc.sadombo.validator.RequestValidator;
+import zw.org.mohcc.sadombo.validator.Validation;
 
 public class DhisOrchestrator extends UntypedActor {
 
@@ -24,18 +31,35 @@ public class DhisOrchestrator extends UntypedActor {
     private final MediatorConfig config;
     private MediatorHTTPRequest originalRequest;
     private final Channels channels;
+    private final RequestBodyTransformer requestBodyTransformer;
+    private final RequestValidator requestValidator;
+    private final RequestTargetMapper requestTargetMapper;
+    private final ResponseTransformer responseTransformer;
+    private final SecurityManager securityManager;
+    private final RequestHeaderMapper requestHeaderMapper;
 
     public DhisOrchestrator(MediatorConfig config) throws IOException {
         this.config = config;
-        this.channels = GeneralUtility.getChannels(config);
+        this.channels = ConfigUtility.getChannels(config);
+        this.requestBodyTransformer = ConfigUtility.getRequestBodyTransformer(config);
+        this.requestValidator = ConfigUtility.getRequestValidator(config);
+        this.requestTargetMapper = ConfigUtility.getRequestTargetMapper(config);
+        this.responseTransformer = ConfigUtility.getResponseTransformer(config);
+        this.securityManager = ConfigUtility.getSecurityManager(config);
+        this.requestHeaderMapper = ConfigUtility.getRequestHeaderMapper(config);
     }
 
     @Override
     public void onReceive(Object msg) throws Exception {
         if (msg instanceof MediatorHTTPRequest) {
             MediatorHTTPRequest request = (MediatorHTTPRequest) msg;
-            if (GeneralUtility.isUserAllowed(request, config)) {
-                queryDhisService((MediatorHTTPRequest) msg);
+            if (securityManager.isUserAllowed(request, config)) {
+                try {
+                    processRequest((MediatorHTTPRequest) msg);
+                } catch (SadomboException ex) {
+                    log.error(ex, "Error occurred when querying ");
+                    request.getRequestHandler().tell(new ExceptError(ex), getSelf());
+                }
             } else {
                 FinishRequest finishRequest = new FinishRequest("Not allowed", "text/plain", HttpStatus.SC_FORBIDDEN);
                 request.getRequestHandler().tell(finishRequest, getSelf());
@@ -47,63 +71,52 @@ public class DhisOrchestrator extends UntypedActor {
         }
     }
 
-    private void queryDhisService(MediatorHTTPRequest request) {
-        boolean hasAdxContentType = GeneralUtility.hasAdxContentType(request);
-        boolean isContentConformingToBasicAdxXsd = false;
+    private void processRequest(MediatorHTTPRequest request) {
         log.info("Querying the DHIS service");
         originalRequest = request;
-        String openHIMTransactionId = request.getHeaders().get("x-openhim-transactionid");
-        ActorSelection httpConnector = getContext().actorSelection(config.userPathFor("http-connector"));
-        Map<String, String> headers = new HashMap<>();
-        headers.putAll(copyHeaders(request.getHeaders()));
-        headers.put("Authorization", getBasicAuthorization(channels.getDhisChannelUser(), channels.getDhisChannelPassword()));
-
-        String requestBody = request.getBody();
-        if (hasAdxContentType && requestBody != null && !requestBody.trim().isEmpty()) {
-            //Validation
-            isContentConformingToBasicAdxXsd = AdxXsdValidator.isConformingToBasicAdxXsd(requestBody);
-            if (isContentConformingToBasicAdxXsd) {
-                //Enrichment: Add a comment
-                requestBody = DefaultADXDataEnricher.enrich(requestBody, openHIMTransactionId, true);
-            }
-        }
-
-        if (hasAdxContentType && !isContentConformingToBasicAdxXsd) {
-            String content = GeneralUtility.getMessageForNonAdxContent(openHIMTransactionId);
-            FinishRequest finishRequest = new FinishRequest(content, "application/xml", HttpStatus.SC_UNPROCESSABLE_ENTITY);
-            request.getRequestHandler().tell(finishRequest, getSelf());
+        Validation validation = requestValidator.validate(request);
+        if (validation.isValid()) {
+            String requestBody = requestBodyTransformer.transformRequestBody(request);
+            Map<String, String> headers = requestHeaderMapper.mapHeaders(request);
+            RequestTarget requestTarget = requestTargetMapper.getRequestTarget(request);
+            sendRequestToDhisChannel(requestTarget, headers, requestBody, request.getRequestHandler());
         } else {
+            FinishRequest finishRequest = new FinishRequest(validation.getErrorMessage(), validation.getErrorHeaders(), validation.getHttpStatus());
+            request.getRequestHandler().tell(finishRequest, getSelf());
+        }
+    }
 
-            MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
-                    request.getRequestHandler(),
-                    getSelf(),
-                    "DHIS Service",
-                    request.getMethod(),
-                    channels.getDhisChannelScheme(),
-                    channels.getDhisChannelHost(),
-                    channels.getDhisChannelPort(),
-                    channels.getDhisChannelContextPath() + DhisUrlMapper.getDhisPath(request.getPath()),
-                    requestBody,
-                    headers,
-                    request.getParams()
-            );
+    private void sendRequestToDhisChannel(RequestTarget requestTarget, Map<String, String> headers, String requestBody, ActorRef actorRef) {
+        addDhisAuthorization(headers);
+        MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
+                actorRef,
+                getSelf(),
+                "DHIS Service",
+                requestTarget.getMethod(),
+                channels.getDhisChannelScheme(),
+                channels.getDhisChannelHost(),
+                channels.getDhisChannelPort(),
+                channels.getDhisChannelContextPath() + requestTarget.getRelativePath(),
+                requestBody,
+                headers,
+                requestTarget.getParams()
+        );
+        ActorSelection httpConnector = getContext().actorSelection(config.userPathFor("http-connector"));
+        httpConnector.tell(serviceRequest, getSelf());
+    }
 
-            httpConnector.tell(serviceRequest, getSelf());
+    private void addDhisAuthorization(Map<String, String> headers) {
+        String dhisChannelUser = channels.getDhisChannelUser();
+        String dhisChannelPassword = channels.getDhisChannelPassword();
+        if (dhisChannelUser != null && dhisChannelPassword != null && !dhisChannelUser.trim().isEmpty() && !dhisChannelPassword.trim().isEmpty()) {
+            headers.put("Authorization", getBasicAuthorization(dhisChannelUser, dhisChannelPassword));
         }
     }
 
     private void processDhisResponse(MediatorHTTPResponse response) {
         log.info("Received response from DHIS service");
-        originalRequest.getRespondTo().tell(response.toFinishRequest(), getSelf());
-    }
-
-    private Map<String, String> copyHeaders(Map<String, String> headers) {
-        Map<String, String> copy = new HashMap<>();
-        copy.put("content-type", headers.get("content-type"));
-        copy.put("x-openhim-transactionid", headers.get("x-openhim-transactionid"));
-        copy.put("x-forwarded-for", headers.get("x-forwarded-for"));
-        copy.put("x-forwarded-host", headers.get("x-forwarded-host"));
-        return copy;
+        FinishRequest finishRequest = responseTransformer.transform(response, originalRequest);
+        originalRequest.getRespondTo().tell(finishRequest, getSelf());
     }
 
 }

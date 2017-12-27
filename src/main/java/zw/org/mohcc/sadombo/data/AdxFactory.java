@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import javax.lang.model.SourceVersion;
-import zw.org.mohcc.sadombo.Channels;
+import zw.org.mohcc.sadombo.EnhancedChannels;
 import zw.org.mohcc.sadombo.utils.ConfigUtility;
 
 /**
@@ -19,11 +19,11 @@ import zw.org.mohcc.sadombo.utils.ConfigUtility;
 public class AdxFactory {
 
     public static void main(String[] args) throws IOException {
-        Channels channels = ConfigUtility.loadChannels(args, null);
+        EnhancedChannels channels = ConfigUtility.loadChannels(args, null);
         System.out.println(getXsdDataEntryTemplate("ATB_010", channels));
     }
 
-    public static String getAdxXsd(String dataSetCode, Channels channels) throws IOException {
+    public static String getAdxXsd(String dataSetCode, EnhancedChannels channels) throws IOException {
         DataSet dataSet = DhisClient.getDataSetByCode(dataSetCode, channels);
         if (dataSet == null) {
             return null;
@@ -119,7 +119,7 @@ public class AdxFactory {
         return sb.toString();
     }
 
-    public static String getXsdDataEntryTemplate(String dataSetCode, Channels channels) throws IOException {
+    public static String getXsdDataEntryTemplate(String dataSetCode, EnhancedChannels channels) throws IOException {
         DataSet dataSet = DhisClient.getDataSetByCode(dataSetCode, channels);
         if (dataSet == null) {
             return null;

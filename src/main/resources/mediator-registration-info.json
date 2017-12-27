@@ -1,11 +1,11 @@
 {
   "urn": "urn:uuid:a5cce630-dfd0-11e7-aebe-958c29ea81f0",
   "version": "0.1.0",
-  "name": "Sadombo Mediator",
-  "description": "ePMS DHIS Mediator",
+  "name": "Sadombo DHIS2 Mediator",
+  "description": "Sadombo DHIS2 Mediator",
   "endpoints": [
     {
-      "name": "Sadombo Mediator Route",
+      "name": "Sadombo DHIS2 Mediator Route",
       "host": "localhost",
       "port": "3000",
       "type": "http"
@@ -13,13 +13,13 @@
   ],
   "defaultChannelConfig": [
     {
-      "name": "Sadombo Mediator",
-      "urlPattern": "^/mediator$",
+      "name": "Sadombo DHIS2 Mediator Channel",
+      "urlPattern": "/sadombo/.*",
       "type": "http",
-      "allow": ["hmis"],
+      "allow": ["epms"],
       "routes": [
         {
-          "name": "Sadombo Mediator Route",
+          "name": "Sadombo DHIS2 Mediator Route",
           "host": "localhost",
           "port": "3000",
           "type": "http",

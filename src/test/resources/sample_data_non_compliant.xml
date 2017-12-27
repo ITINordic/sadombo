@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adx xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:ihe:qrph:adx:2015 ATB_005.xsd" xmlns="urn:ihe:qrph:adx:2015">
+    
+    <group dataSet="ATB_005" orgUnit="ZW000A59" period="2017-01-01/P1M" comment="EPMS_timestamp">
+        <dataValue dataElement="ATB_005_D23" value="32" ATB_SUMMARY_AGEGRP="P0M/P3M" SEX="M"/>
+        <dataValue dataElement="ATB_005_D24" value="56" SEX="F" ATB_SUMMARY_AGEGRP="P20Y/P5Y"/>
+        <myDataValue dataElement="ATB_005_D24" value="56" SEX="M" ATB_SUMMARY_AGEGRP="P20Y/P5Y"/>
+    </group>    
+    
+</adx>

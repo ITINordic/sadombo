@@ -3,7 +3,16 @@ package zw.org.mohcc.sadombo.utils;
 import akka.event.LoggingAdapter;
 import java.io.File;
 import java.io.IOException;
+import org.openhim.mediator.engine.MediatorConfig;
 import zw.org.mohcc.sadombo.Channels;
+import zw.org.mohcc.sadombo.EnhancedChannels;
+import zw.org.mohcc.sadombo.SadomboBeanFactory;
+import zw.org.mohcc.sadombo.mapper.RequestHeaderMapper;
+import zw.org.mohcc.sadombo.mapper.RequestTargetMapper;
+import zw.org.mohcc.sadombo.security.SecurityManager;
+import zw.org.mohcc.sadombo.transformer.RequestBodyTransformer;
+import zw.org.mohcc.sadombo.transformer.ResponseTransformer;
+import zw.org.mohcc.sadombo.validator.RequestValidator;
 
 /**
  *
@@ -11,14 +20,46 @@ import zw.org.mohcc.sadombo.Channels;
  */
 public class ConfigUtility {
 
-    public static Channels loadChannels(String[] args, LoggingAdapter log) throws IOException {
+    public static SadomboBeanFactory getSadomboBeanFactory(MediatorConfig config) {
+        return (SadomboBeanFactory) config.getDynamicConfig().get("sadomboBeanFactory");
+    }
+
+    public static Channels getChannels(MediatorConfig config) {
+        return getSadomboBeanFactory(config).getChannels();
+    }
+
+    public static RequestBodyTransformer getRequestBodyTransformer(MediatorConfig config) {
+        return getSadomboBeanFactory(config).getRequestBodyTransformer();
+    }
+
+    public static RequestValidator getRequestValidator(MediatorConfig config) {
+        return getSadomboBeanFactory(config).getRequestValidator();
+    }
+
+    public static RequestHeaderMapper getRequestHeaderMapper(MediatorConfig config) {
+        return getSadomboBeanFactory(config).getRequestHeaderMapper();
+    }
+
+    public static RequestTargetMapper getRequestTargetMapper(MediatorConfig config) {
+        return getSadomboBeanFactory(config).getRequestTargetMapper();
+    }
+
+    public static ResponseTransformer getResponseTransformer(MediatorConfig config) {
+        return getSadomboBeanFactory(config).getResponseTransformer();
+    }
+
+    public static SecurityManager getSecurityManager(MediatorConfig config) {
+        return getSadomboBeanFactory(config).getSecurityManager();
+    }
+
+    public static EnhancedChannels loadChannels(String[] args, LoggingAdapter log) throws IOException {
         String channelConfigPath = findChannelConfigPath(args, log);
-        Channels channels = loadChannels(channelConfigPath);
+        EnhancedChannels channels = loadChannels(channelConfigPath);
         return channels;
     }
 
-    public static Channels loadChannels(String channelConfigPath) throws IOException {
-        Channels channels = new Channels();
+    public static EnhancedChannels loadChannels(String channelConfigPath) throws IOException {
+        EnhancedChannels channels = new EnhancedChannels();
         if (channelConfigPath != null) {
             channels.setProperties(GeneralUtility.loadProperties(channelConfigPath));
         } else {

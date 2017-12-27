@@ -3,14 +3,31 @@ package zw.org.mohcc.sadombo.utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Properties;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.openhim.mediator.engine.MediatorConfig;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
-import zw.org.mohcc.sadombo.Channels;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -19,18 +36,6 @@ import zw.org.mohcc.sadombo.Channels;
 public class GeneralUtility {
 
     public final static String ADX_CONTENT_TYPE = "application/adx+xml";
-
-    public static String getPath(String contextPath) {
-        String requestPath = "/";
-        int firstIndexOf = contextPath.indexOf("/");
-        if (firstIndexOf >= 0 && contextPath.length() >= firstIndexOf + 2) {
-            int secondIndexOf = contextPath.indexOf("/", firstIndexOf + 1);
-            if (secondIndexOf > firstIndexOf) {
-                requestPath = contextPath.substring(secondIndexOf);
-            }
-        }
-        return requestPath;
-    }
 
     public static Properties loadProperties(String filePath) throws IOException {
         Properties props = new Properties();
@@ -43,11 +48,13 @@ public class GeneralUtility {
 
     public static String getParamValue(String[] args, String paramName) {
         String paramValue = null;
-        int argsLength = args.length;
-        for (int i = 0; i < argsLength; i++) {
-            if (args[i].equals(paramName) && i + 1 < argsLength) {
-                paramValue = args[i + 1];
-                break;
+        if (args != null) {
+            int argsLength = args.length;
+            for (int i = 0; i < argsLength; i++) {
+                if (args[i].equals(paramName) && i + 1 < argsLength) {
+                    paramValue = args[i + 1];
+                    break;
+                }
             }
         }
         return paramValue;
@@ -66,27 +73,15 @@ public class GeneralUtility {
     }
 
     public static Credentials getCredentials(MediatorHTTPRequest request) {
-        String authorization = request.getHeaders().get("Authorization");
-        authorization = authorization != null ? authorization : request.getHeaders().get("authorization");
+        String authorization = null;
+        if (request.getHeaders() != null && !request.getHeaders().isEmpty()) {
+            authorization = request.getHeaders().get("Authorization");
+            authorization = authorization != null ? authorization : request.getHeaders().get("authorization");
+        }
         if (authorization == null || authorization.trim().isEmpty()) {
             return null;
         } else {
             return getCredentials(authorization);
-        }
-    }
-
-    public static Channels getChannels(MediatorConfig config) {
-        return (Channels) config.getDynamicConfig().get("channels");
-    }
-
-    public static boolean isUserAllowed(MediatorHTTPRequest request, MediatorConfig config) {
-        Channels channels = getChannels(config);
-        if (!channels.isSadomboAuthenticationEnabled()) {
-            return true;
-        } else {
-            Credentials sadomboCredentials = channels.getSadomboCredentials();
-            Credentials userCredentials = getCredentials(request);
-            return userCredentials != null && userCredentials.equals(sadomboCredentials);
         }
     }
 
@@ -95,8 +90,76 @@ public class GeneralUtility {
         return contentType != null && contentType.trim().equalsIgnoreCase(ADX_CONTENT_TYPE);
     }
 
+    public static boolean hasMethod(MediatorHTTPRequest request, String method) {
+        return request.getMethod().equalsIgnoreCase(method);
+    }
+
+    public static boolean hasPostMethod(MediatorHTTPRequest request) {
+        return hasMethod(request, "post");
+    }
+
+    public static boolean hasPutMethod(MediatorHTTPRequest request) {
+        return hasMethod(request, "post");
+    }
+
+    public static boolean hasPostOrPutMethod(MediatorHTTPRequest request) {
+        return hasPostMethod(request) || hasPutMethod(request);
+    }
+
     public static String getBasicAuthorization(String username, String password) {
         return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
+    }
+
+    public static Document getDomDocument(String xmlContent, boolean validating) throws IOException, ParserConfigurationException, SAXException {
+        InputStream inputStream = IOUtils.toInputStream(xmlContent, "UTF-8");
+        return getDomDocument(inputStream, validating);
+    }
+
+    public static Document getDomDocument(InputStream inputStream, boolean validating) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setValidating(validating);
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document document = db.parse(inputStream);
+        return document;
+    }
+
+    public static org.jdom2.Document getJDom2Document(String xmlContent) throws JDOMException, IOException {
+        InputStream inputStream = IOUtils.toInputStream(xmlContent, "UTF-8");
+        return getJDom2Document(inputStream);
+    }
+
+    public static org.jdom2.Document getJDom2Document(InputStream inputStream) throws JDOMException, IOException {
+        SAXBuilder builder = new SAXBuilder();
+        org.jdom2.Document doc = (org.jdom2.Document) builder.build(inputStream);
+        return doc;
+    }
+
+    public static void validateXml(InputStream xsdInputStream, InputStream xmlInputStream) throws SAXException, IOException {
+
+        SchemaFactory factory
+                = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        factory.setResourceResolver(new ClasspathResourceResolver());
+        Schema schema = factory.newSchema(new StreamSource(xsdInputStream));
+        Validator validator = schema.newValidator();
+        validator.validate(new StreamSource(xmlInputStream));
+    }
+
+    public static String documentToString(Document xml) throws Exception {
+        Transformer tf = TransformerFactory.newInstance().newTransformer();
+        tf.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        tf.setOutputProperty(OutputKeys.INDENT, "yes");
+        Writer out = new StringWriter();
+        tf.transform(new DOMSource(xml), new StreamResult(out));
+        return out.toString();
+    }
+
+    public static boolean hasEmptyRequestBody(MediatorHTTPRequest request) {
+        String requestBody = request.getBody();
+        return requestBody == null || requestBody.trim().isEmpty();
+    }
+
+    public static String trimXML(String xml) {
+        return xml.replace("\n", "").replaceAll(">\\s*<", "><");
     }
 
     public static String getMessageForNonAdxContent(String transactionId) {
@@ -104,7 +167,7 @@ public class GeneralUtility {
                 + "<importSummary \n"
                 + "  xmlns=\"http://dhis2.org/schema/dxf/2.0\" responseType=\"ImportSummary\" source=\"OpenHIM\" transactionId=\"" + transactionId + "\">\n"
                 + " <status>FAILED_BASIC_ADX_VALIDATION</status>\n"
-                + " <description>Failed Basic ADX xsd validation. Message not passed to the server</description>\n"
+                + " <description>Failed Basic ADX xsd validation. Message not passed to the upstream server</description>\n"
                 + "</importSummary>";
     }
 

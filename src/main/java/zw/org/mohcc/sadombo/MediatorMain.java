@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.openhim.mediator.engine.*;
 import static zw.org.mohcc.sadombo.utils.ConfigUtility.findConfigPath;
-import static zw.org.mohcc.sadombo.utils.ConfigUtility.loadChannels;
 import zw.org.mohcc.sadombo.utils.GeneralUtility;
 
 public class MediatorMain {
@@ -15,7 +14,7 @@ public class MediatorMain {
     private static RoutingTable buildRoutingTable() throws RoutingTable.RouteAlreadyMappedException {
         RoutingTable routingTable = new RoutingTable();
         routingTable.addRoute("/mediator", DefaultOrchestrator.class);
-        routingTable.addRegexRoute("/dhis-mediator/.*", DhisOrchestrator.class);
+        routingTable.addRegexRoute("/sadombo/.*", DhisOrchestrator.class);
         return routingTable;
     }
 
@@ -69,10 +68,7 @@ public class MediatorMain {
 
         String configPath = findConfigPath(args, log);
         MediatorConfig config = loadConfig(configPath);
-
-        Channels channels = loadChannels(args, log);
-        config.getDynamicConfig().put("channels", channels);
-
+        config.getDynamicConfig().put("sadomboBeanFactory", DefaultSadomboBeanFactory.getInstance(log, args));
         //Added by Charles Chigoriwa
         final MediatorServer server = new MediatorServer(system, config);
 

@@ -8,7 +8,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import zw.org.mohcc.sadombo.Channels;
+import zw.org.mohcc.sadombo.EnhancedChannels;
 import zw.org.mohcc.sadombo.SadomboException;
 import zw.org.mohcc.sadombo.utils.ConfigUtility;
 import static zw.org.mohcc.sadombo.utils.GeneralUtility.getBasicAuthorization;
@@ -20,12 +20,12 @@ import static zw.org.mohcc.sadombo.utils.GeneralUtility.getBasicAuthorization;
 public class DhisClient {
 
     public static void main(String[] args) throws IOException {
-        Channels channels = ConfigUtility.loadChannels(args, null);
+        EnhancedChannels channels = ConfigUtility.loadChannels(args, null);
         System.out.println(getCategoryComboById("Yqri7Qy4PhY", channels));
 
     }
 
-    public static DataSet getDataSetByCode(String code, Channels channels) throws IOException {
+    public static DataSet getDataSetByCode(String code, EnhancedChannels channels) throws IOException {
 
         String username = channels.getDhisChannelUser();
         String password = channels.getDhisChannelPassword();
@@ -58,7 +58,7 @@ public class DhisClient {
         }
     }
 
-    public static CategoryCombo getCategoryComboById(String id, Channels channels) throws IOException {
+    public static CategoryCombo getCategoryComboById(String id, EnhancedChannels channels) throws IOException {
 
         String username = channels.getDhisChannelUser();
         String password = channels.getDhisChannelPassword();

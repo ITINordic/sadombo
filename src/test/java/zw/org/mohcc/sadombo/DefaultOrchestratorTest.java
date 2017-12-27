@@ -42,7 +42,8 @@ public class DefaultOrchestratorTest {
         new JavaTestKit(system) {
             {
                 final MediatorConfig testConfig = new MediatorConfig("sadombo", "localhost", 3000);
-                testConfig.getDynamicConfig().put("channels", new Channels());
+                //TODO: Mock this please
+                testConfig.getDynamicConfig().put("sadomboBeanFactory", DefaultSadomboBeanFactory.getInstance(null, (String[]) null));
                 final ActorRef defaultOrchestrator = system.actorOf(Props.create(DefaultOrchestrator.class, testConfig));
 
                 MediatorHTTPRequest POST_Request = new MediatorHTTPRequest(
