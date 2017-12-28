@@ -54,5 +54,9 @@ curl -u admin:district 'https://zim.dhis2.org/develop/api/categoryCombos/Yqri7Qy
 curl -u admin:district 'https://zim.dhis2.org/develop/api/categoryCombos/Yqri7Qy4PhY?fields=categoryOptionCombos\[categoryOptions\[code\]\]' | jq .
 
 
+### Testing Environment (for documentation)
+curl -k -u sadombo:test1234 https://localhost:5000/sadombo/api/me
 
+curl -k -u epms:test1234 https://localhost:5000/sadombo/api/me
 
+curl -k -u epms:test1234 -H "Accept: application/adx+xml" "https://localhost:5000/sadombo/api/dataValueSets?orgUnit=ZW000A59&dataSet=ATB_005&period=201701" 

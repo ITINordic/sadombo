@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Base64;
+import java.util.Map;
 import java.util.Properties;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -149,6 +150,13 @@ public class GeneralUtility {
     public static boolean hasEmptyRequestBody(MediatorHTTPRequest request) {
         String requestBody = request.getBody();
         return requestBody == null || requestBody.trim().isEmpty();
+    }
+
+    public static void copyHeader(String headerName, Map<String, String> fromHeaders, Map<String, String> toHeaders) {
+        String headerValue = fromHeaders.get(headerName);
+        if (headerValue != null && !headerValue.trim().isEmpty()) {
+            toHeaders.put(headerName, headerValue);
+        }
     }
 
     public static String trimXML(String xml) {

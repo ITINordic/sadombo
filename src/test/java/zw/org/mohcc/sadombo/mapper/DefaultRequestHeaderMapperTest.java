@@ -19,19 +19,19 @@ public class DefaultRequestHeaderMapperTest {
     @Test
     public void test() {
         DefaultRequestHeaderMapper defaultRequestHeaderMapper = new DefaultRequestHeaderMapper();
-        MediatorHTTPRequest request = getMediatorHTTPRequest(ADX_CONTENT_TYPE);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("content-type", ADX_CONTENT_TYPE);
+        MediatorHTTPRequest request = getMediatorHTTPRequest(headers);
         Map<String, String> newHeaders = defaultRequestHeaderMapper.mapHeaders(request);
         String contentType = newHeaders.get("content-type");
         assertTrue(contentType != null && !contentType.trim().isEmpty());
     }
 
-    private MediatorHTTPRequest getMediatorHTTPRequest(String contentType) {
+    private MediatorHTTPRequest getMediatorHTTPRequest(Map<String, String> headers) {
         String path = "/dhis-mediator/api/dataSets";
         String body = "defaultBody";
         List<Pair<String, String>> params = null;
         ActorRef actorRef = null;
-        Map<String, String> headers = new HashMap<>();
-        headers.put("content-type", contentType);
         return new MediatorHTTPRequest(actorRef, actorRef, "my-orch", "get", "https", "localhost", 3000, path, body, headers, params);
     }
 

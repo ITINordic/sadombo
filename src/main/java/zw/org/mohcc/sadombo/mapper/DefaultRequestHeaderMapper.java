@@ -3,6 +3,7 @@ package zw.org.mohcc.sadombo.mapper;
 import java.util.HashMap;
 import java.util.Map;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
+import static zw.org.mohcc.sadombo.utils.GeneralUtility.copyHeader;
 
 /**
  *
@@ -14,10 +15,10 @@ public class DefaultRequestHeaderMapper extends RequestHeaderMapper {
     public Map<String, String> mapHeaders(MediatorHTTPRequest request) {
         Map<String, String> headers = request.getHeaders();
         Map<String, String> newHeaders = new HashMap<>();
-        newHeaders.put("content-type", headers.get("content-type"));
-        newHeaders.put("x-openhim-transactionid", headers.get("x-openhim-transactionid"));
-        newHeaders.put("x-forwarded-for", headers.get("x-forwarded-for"));
-        newHeaders.put("x-forwarded-host", headers.get("x-forwarded-host"));
+        String[] headerNames = {"accept", "content-type", "x-openhim-transactionid", "x-forwarded-for", "x-forwarded-host"};
+        for (String headerName : headerNames) {
+            copyHeader(headerName, headers, newHeaders);
+        }
         return newHeaders;
     }
 
