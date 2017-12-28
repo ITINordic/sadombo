@@ -60,3 +60,5 @@ curl -k -u sadombo:test1234 https://localhost:5000/sadombo/api/me
 curl -k -u epms:test1234 https://localhost:5000/sadombo/api/me
 
 curl -k -u epms:test1234 -H "Accept: application/adx+xml" "https://localhost:5000/sadombo/api/dataValueSets?orgUnit=ZW000A59&dataSet=ATB_005&period=201701" 
+
+curl -k -u epms:test1234 -d @ATB_005_data.xml -H "Content-type:application/adx+xml" "https://localhost:5000/sadombo/api/dataValueSets.xml?idScheme=code&categoryOptionComboIdScheme=uid" | xmllint --format -
