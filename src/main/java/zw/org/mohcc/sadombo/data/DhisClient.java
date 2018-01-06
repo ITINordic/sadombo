@@ -27,9 +27,6 @@ public class DhisClient {
 
     public static DataSet getDataSetByCode(String code, EnhancedChannels channels) throws IOException {
 
-        String username = channels.getDhisChannelUser();
-        String password = channels.getDhisChannelPassword();
-
         HttpUrl.Builder urlBuilder = HttpUrl.parse(channels.getDhisBaseUrl() + "/api/dataSets").newBuilder();
         urlBuilder.addQueryParameter("filter", "code:eq:" + code);
         urlBuilder.addQueryParameter("fields", "id,code,periodType,categoryCombo,dataSetElements[categoryCombo,dataElement[id,name,code,categoryCombo]],organisationUnits[id,code,name]");
@@ -37,7 +34,7 @@ public class DhisClient {
         String url = urlBuilder.build().toString();
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .addHeader("Authorization", getBasicAuthorization(username, password))
+                .addHeader("Authorization", getBasicAuthorization("", ""))
                 .url(url)
                 .build();
 
@@ -60,16 +57,13 @@ public class DhisClient {
 
     public static CategoryCombo getCategoryComboById(String id, EnhancedChannels channels) throws IOException {
 
-        String username = channels.getDhisChannelUser();
-        String password = channels.getDhisChannelPassword();
-
         HttpUrl.Builder urlBuilder = HttpUrl.parse(channels.getDhisBaseUrl() + "/api/categoryCombos/" + id).newBuilder();
         urlBuilder.addQueryParameter("fields", "id,code,name,categories[id,code,name,categoryOptions[id,code,name]]");
         urlBuilder.addQueryParameter("paging", "false");
         String url = urlBuilder.build().toString();
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .addHeader("Authorization", getBasicAuthorization(username, password))
+                .addHeader("Authorization", getBasicAuthorization("", ""))
                 .url(url)
                 .build();
 

@@ -15,7 +15,7 @@ public class DefaultRequestHeaderMapper extends RequestHeaderMapper {
     public Map<String, String> mapHeaders(MediatorHTTPRequest request) {
         Map<String, String> headers = request.getHeaders();
         Map<String, String> newHeaders = new HashMap<>();
-        String[] headerNames = {"accept", "content-type", "x-openhim-transactionid", "x-forwarded-for", "x-forwarded-host"};
+        String[] headerNames = {"accept", "content-type", "x-openhim-transactionid", "x-forwarded-for", "x-forwarded-host", "x-dhis-authorization"};
         for (String headerName : headerNames) {
             copyHeader(headerName, headers, newHeaders);
         }

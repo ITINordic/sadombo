@@ -72,11 +72,15 @@ public class ConfigUtility {
     public static String findConfigPath(String[] args, LoggingAdapter log) {
         String configPath = GeneralUtility.getParamValue(args, "--conf");
         String mediatorHomeFilePath = System.getProperty("user.home") + File.separator + ".sadombo" + File.separator + "mediator.properties";
+        String mediatorEtcFilePath = File.separator + "etc" + File.separator + "sadombo" + File.separator + "mediator.properties";
         if (configPath != null) {
             basicInfoLog(log, "Loading mediator configuration from '" + configPath + "'...");
         } else if (new File(mediatorHomeFilePath).exists()) {
             configPath = mediatorHomeFilePath;
-            basicInfoLog(log, "Loading channels configuration from '" + mediatorHomeFilePath + "'...");
+            basicInfoLog(log, "Loading mediator configuration from '" + mediatorHomeFilePath + "'...");
+        } else if (new File(mediatorEtcFilePath).exists()) {
+            configPath = mediatorEtcFilePath;
+            basicInfoLog(log, "Loading mediator configuration from '" + mediatorEtcFilePath + "'...");
         } else {
             basicInfoLog(log, "No configuration specified. Using default properties...");
         }
@@ -86,11 +90,15 @@ public class ConfigUtility {
     public static String findChannelConfigPath(String[] args, LoggingAdapter log) {
         String channelConfigPath = GeneralUtility.getParamValue(args, "--chan-conf");
         String channelHomeFilePath = System.getProperty("user.home") + File.separator + ".sadombo" + File.separator + "openhim-channels.properties";
+        String channelEtcFilePath = File.separator + "etc" + File.separator + "sadombo" + File.separator + "openhim-channels.properties";
         if (channelConfigPath != null) {
             basicInfoLog(log, "Loading channels configuration from '" + channelConfigPath + "'...");
         } else if (new File(channelHomeFilePath).exists()) {
             channelConfigPath = channelHomeFilePath;
             basicInfoLog(log, "Loading channels configuration from '" + channelHomeFilePath + "'...");
+        } else if (new File(channelEtcFilePath).exists()) {
+            channelConfigPath = channelEtcFilePath;
+            basicInfoLog(log, "Loading channels configuration from '" + channelEtcFilePath + "'...");
 
         } else {
             basicInfoLog(log, "No channels configuration specified. Using default properties...");

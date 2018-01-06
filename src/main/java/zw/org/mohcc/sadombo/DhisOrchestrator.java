@@ -20,7 +20,6 @@ import zw.org.mohcc.sadombo.security.SecurityManager;
 import zw.org.mohcc.sadombo.transformer.RequestBodyTransformer;
 import zw.org.mohcc.sadombo.transformer.ResponseTransformer;
 import zw.org.mohcc.sadombo.utils.ConfigUtility;
-import static zw.org.mohcc.sadombo.utils.GeneralUtility.getBasicAuthorization;
 import zw.org.mohcc.sadombo.validator.RequestValidator;
 import zw.org.mohcc.sadombo.validator.Validation;
 
@@ -79,6 +78,7 @@ public class DhisOrchestrator extends UntypedActor {
             String requestBody = requestBodyTransformer.transformRequestBody(request);
             Map<String, String> headers = requestHeaderMapper.mapHeaders(request);
             RequestTarget requestTarget = requestTargetMapper.getRequestTarget(request);
+            addAuthorizationHeader(headers, request);
             sendRequestToDhisChannel(requestTarget, headers, requestBody, request.getRequestHandler());
         } else {
             FinishRequest finishRequest = new FinishRequest(validation.getErrorMessage(), validation.getErrorHeaders(), validation.getHttpStatus());
@@ -86,8 +86,14 @@ public class DhisOrchestrator extends UntypedActor {
         }
     }
 
+    private void addAuthorizationHeader(Map<String, String> headers, MediatorHTTPRequest request) {
+        String dhisAuthorization = request.getHeaders().get("x-dhis-authorization");
+        if (dhisAuthorization != null && !dhisAuthorization.trim().isEmpty()) {
+            headers.put("Authorization", dhisAuthorization);
+        }
+    }
+
     private void sendRequestToDhisChannel(RequestTarget requestTarget, Map<String, String> headers, String requestBody, ActorRef actorRef) {
-        addDhisAuthorization(headers);
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 actorRef,
                 getSelf(),
@@ -103,14 +109,6 @@ public class DhisOrchestrator extends UntypedActor {
         );
         ActorSelection httpConnector = getContext().actorSelection(config.userPathFor("http-connector"));
         httpConnector.tell(serviceRequest, getSelf());
-    }
-
-    private void addDhisAuthorization(Map<String, String> headers) {
-        String dhisChannelUser = channels.getDhisChannelUser();
-        String dhisChannelPassword = channels.getDhisChannelPassword();
-        if (dhisChannelUser != null && dhisChannelPassword != null && !dhisChannelUser.trim().isEmpty() && !dhisChannelPassword.trim().isEmpty()) {
-            headers.put("Authorization", getBasicAuthorization(dhisChannelUser, dhisChannelPassword));
-        }
     }
 
     private void processDhisResponse(MediatorHTTPResponse response) {

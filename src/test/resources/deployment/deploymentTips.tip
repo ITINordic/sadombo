@@ -1,0 +1,19 @@
+# Encode a username and password
+echo -n "admin:admin" | base64
+echo "Y2NoaWdvcml3YTpUZXN0MTIzNA==" | base64 --decode
+
+########## Folder Creation ######################
+mkdir -> /var/log/sadombo      ### For Logs
+mkdir -> /usr/lib/sadombo      ### For Jars
+mkdir -> /etc/sadombo          ### For Configs, properties etc
+
+####### Script Placement ###########
+Put sadombo-start.sh in /usr/local/bin
+chmod 744 /usr/local/bin/sadombo-start.sh
+
+
+########## Make it run at start/boot ######################
+Edit /etc/crontab as superuser and add a line 
+@reboot     root    /usr/local/bin/sadombo-start.sh
+
+
