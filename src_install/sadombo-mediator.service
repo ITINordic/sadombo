@@ -1,0 +1,18 @@
+# Ref: http://www.jcgonzalez.com/ubuntu-16-java-service-wrapper-example
+[Unit]
+Description = Sadombo Mediator
+
+Requires = openhim-core.service 
+After = network.target openhim-core.service
+
+[Service]
+Type = forking
+ExecStart = /usr/local/bin/sadombo-mediator.sh start
+ExecStop = /usr/local/bin/sadombo-mediator.sh stop
+ExecReload = /usr/local/bin/sadombo-mediator.sh reload
+User = sadombo-mediator
+Group = sadombo-mediator
+
+[Install]
+WantedBy=multi-user.target
+

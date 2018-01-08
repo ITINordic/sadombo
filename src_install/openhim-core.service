@@ -1,0 +1,17 @@
+# Ref: http://www.jcgonzalez.com/ubuntu-16-java-service-wrapper-example
+[Unit]
+Description = OpenHIM Core
+Requires = mongod.service 
+After = network.target mongod.service
+
+[Service]
+Type = forking
+ExecStart = /usr/local/bin/openhim-core.sh start
+ExecStop = /usr/local/bin/openhim-core.sh stop
+ExecReload = /usr/local/bin/openhim-core.sh reload
+User = openhim
+Group = openhim
+
+[Install]
+WantedBy=multi-user.target
+
