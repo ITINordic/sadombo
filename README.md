@@ -12,9 +12,6 @@ To create the ubuntu service use the files in src_install
 2. Enable service at startup by using systemctl enable sadombo-mediator.service
 2. Start the service using systemctl start sadombo-mediator.service
 
-You can trigger monitoring using curl localhost:4567/monitor.
-The service has to be restarted if configurations change.
-
 ## Installing OpenHIM Ubuntu 16.04
 To create the ubuntu service use the files in src_install
 
@@ -26,6 +23,3 @@ To create the ubuntu service use the files in src_install
 2. Give the the service account ownership of the folders using chown openhim-core:openhim-core -R
 2. Enable service at startup by using systemctl enable openhim-core.service
 2. Start the service using systemctl start openhim-core.service
-
-You can trigger monitoring using curl localhost:4567/monitor.
-The service has to be restarted if configurations change.
