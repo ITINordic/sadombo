@@ -16,6 +16,8 @@ public class EnhancedChannels extends Channels {
     private String dhisChannelHost;
     private Integer dhisChannelPort;
     private String dhisChannelContextPath;
+    private String dhisChannelUser;
+    private String dhisChannelPassword;
 
     private boolean sadomboAuthenticationEnabled = false;
     private Credentials sadomboCredentials = new Credentials();
@@ -59,6 +61,24 @@ public class EnhancedChannels extends Channels {
 
     public void setDhisChannelContextPath(String dhisChannelContextPath) {
         this.dhisChannelContextPath = dhisChannelContextPath;
+    }
+
+    @Override
+    public String getDhisChannelUser() {
+        return dhisChannelUser;
+    }
+
+    public void setDhisChannelUser(String dhisChannelUser) {
+        this.dhisChannelUser = dhisChannelUser;
+    }
+
+    @Override
+    public String getDhisChannelPassword() {
+        return dhisChannelPassword;
+    }
+
+    public void setDhisChannelPassword(String dhisChannelPassword) {
+        this.dhisChannelPassword = dhisChannelPassword;
     }
 
     public Properties getProperties() {
@@ -105,6 +125,8 @@ public class EnhancedChannels extends Channels {
         this.dhisChannelHost = properties.getProperty("dhis.channel.host");
         this.dhisChannelPort = Integer.parseInt(properties.getProperty("dhis.channel.port"));
         this.dhisChannelContextPath = properties.getProperty("dhis.channel.context.path");
+        this.dhisChannelUser = properties.getProperty("dhis.channel.user");
+        this.dhisChannelPassword = properties.getProperty("dhis.channel.password");
         this.sadomboAuthenticationEnabled = Boolean.valueOf(properties.getProperty("sadombo.authentication.enabled"));
         this.sadomboCredentials.setUsername(properties.getProperty("sadombo.authentication.user"));
         this.sadomboCredentials.setPassword(properties.getProperty("sadombo.authentication.password"));

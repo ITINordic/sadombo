@@ -17,3 +17,18 @@ Edit /etc/crontab as superuser and add a line
 @reboot     root    /usr/local/bin/sadombo-start.sh
 
 
+### Start NodeMailer
+"nodemailer": {
+        "host": "localhost",
+        "port": 25,
+        "secure": false, 
+        "auth": {
+            "user": "",
+            "pass": ""
+        }
+}
+#### End NodeMailer
+
+#####Take note of the following
+Mongodb Version 3.2
+NodeJs 6.XXX

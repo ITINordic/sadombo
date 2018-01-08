@@ -20,6 +20,7 @@ import zw.org.mohcc.sadombo.security.SecurityManager;
 import zw.org.mohcc.sadombo.transformer.RequestBodyTransformer;
 import zw.org.mohcc.sadombo.transformer.ResponseTransformer;
 import zw.org.mohcc.sadombo.utils.ConfigUtility;
+import static zw.org.mohcc.sadombo.utils.GeneralUtility.getBasicAuthorization;
 import zw.org.mohcc.sadombo.validator.RequestValidator;
 import zw.org.mohcc.sadombo.validator.Validation;
 
@@ -86,13 +87,6 @@ public class DhisOrchestrator extends UntypedActor {
         }
     }
 
-    private void addAuthorizationHeader(Map<String, String> headers, MediatorHTTPRequest request) {
-        String dhisAuthorization = request.getHeaders().get("x-dhis-authorization");
-        if (dhisAuthorization != null && !dhisAuthorization.trim().isEmpty()) {
-            headers.put("Authorization", dhisAuthorization);
-        }
-    }
-
     private void sendRequestToDhisChannel(RequestTarget requestTarget, Map<String, String> headers, String requestBody, ActorRef actorRef) {
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 actorRef,
@@ -115,6 +109,23 @@ public class DhisOrchestrator extends UntypedActor {
         log.info("Received response from DHIS service");
         FinishRequest finishRequest = responseTransformer.transform(response, originalRequest);
         originalRequest.getRespondTo().tell(finishRequest, getSelf());
+    }
+
+    private void addAuthorizationHeader(Map<String, String> headers, MediatorHTTPRequest request) {
+        String dhisAuthorization = null;
+        if (request.getHeaders() != null & !request.getHeaders().isEmpty()) {
+            dhisAuthorization = request.getHeaders().get("x-dhis-authorization");
+        }
+
+        if (dhisAuthorization != null && !dhisAuthorization.trim().isEmpty()) {
+            headers.put("Authorization", dhisAuthorization);
+        } else {
+            String dhisChannelUser = channels.getDhisChannelUser();
+            String dhisChannelPassword = channels.getDhisChannelPassword();
+            if (dhisChannelUser != null && dhisChannelPassword != null && !dhisChannelUser.trim().isEmpty() && !dhisChannelPassword.trim().isEmpty()) {
+                headers.put("Authorization", getBasicAuthorization(dhisChannelUser, dhisChannelPassword));
+            }
+        }
     }
 
 }
