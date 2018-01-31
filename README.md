@@ -19,7 +19,7 @@ To create the ubuntu service use the files in src_install
 1. Create a user to use for the service using adduser --system --group --disabled-password openhim
 2. Create systemd unit file /etc/systemd/system/openhim-core.service and specify the user and group created earlier. Example available in src_install
 2. Create startup script /usr/local/bin/openhim-core.sh. Example available in src_install
-2. Give the user execute permissions on the shell script.
+2. Give the user execute permissions on the shell script. For example chown openhim:openhim openhim-core.sh and chmod u+x openhim-core.sh
 2. Create pid folder /var/run/openhim-core/
 2. Give the the service account ownership of the folders using chown openhim:openhim -R
 2. Enable service at startup by using systemctl enable openhim-core.service
