@@ -57,7 +57,7 @@ public class CompletionOrchestrator extends UntypedActor {
 
         String requestBody = "<completeDataSetRegistrations \n"
                 + "  xmlns=\"http://dhis2.org/schema/dxf/2.0\">\n"
-                + "  <completeDataSetRegistration dataSet=\"" + request.getRequestObject().getDataSetId() + "\" period=\"" + period + "\"  organisationUnit=\"" + request.getRequestObject().getFacilityId() + "\"  storedBy=\"imported\" />\n"
+                + "  <completeDataSetRegistration dataSet=\"" + request.getRequestObject().getDataSetId() + "\" period=\"" + period + "\"  organisationUnit=\"" + request.getRequestObject().getFacilityId() + "\" />\n"
                 + "</completeDataSetRegistrations>";
 
         Map<String, String> headers = new LinkedHashMap<>();
