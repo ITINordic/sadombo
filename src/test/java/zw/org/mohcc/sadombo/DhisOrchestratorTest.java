@@ -79,6 +79,7 @@ public class DhisOrchestratorTest {
         system = null;
     }
 
+    @Ignore
     @Test
     public void testMediatorNoAuth() throws Exception {
         new JavaTestKit(system) {
@@ -114,6 +115,7 @@ public class DhisOrchestratorTest {
         };
     }
 
+    @Ignore
     @Test
     public void testMediatorWrongAdxHTTPRequest() throws Exception {
         new JavaTestKit(system) {
@@ -152,6 +154,7 @@ public class DhisOrchestratorTest {
         };
     }
 
+    @Ignore
     @Test
     public void testMediatorCorrectAdxHTTPRequest() throws Exception {
         new JavaTestKit(system) {
