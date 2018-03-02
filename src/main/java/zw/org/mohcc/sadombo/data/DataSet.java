@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, ITINordic
  * All rights reserved.
  *
@@ -42,6 +42,7 @@ public class DataSet {
     private CategoryCombo categoryCombo;
     private List<DataSetElement> dataSetElements;
     private List<OrganisationUnit> organisationUnits;
+    private String name;
 
     public String getId() {
         return id;
@@ -73,6 +74,14 @@ public class DataSet {
 
     public void setPeriodType(String periodType) {
         this.periodType = periodType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public List<DataSetElement> getDataSetElements() {
