@@ -19,6 +19,7 @@ import org.openhim.mediator.engine.messages.MediatorHTTPResponse;
 import org.openhim.mediator.engine.messages.MediatorRequestMessage;
 import org.openhim.mediator.engine.messages.SimpleMediatorRequest;
 import org.openhim.mediator.engine.messages.SimpleMediatorResponse;
+import zw.org.mohcc.sadombo.data.FacilityRequestInput;
 import zw.org.mohcc.sadombo.data.OrganisationUnit;
 import zw.org.mohcc.sadombo.data.OrganisationUnitWrapper;
 import zw.org.mohcc.sadombo.utils.ConfigUtility;
@@ -33,10 +34,10 @@ public class FacilityOrchestrator extends UntypedActor {
     private ResolveFacilityRequest originalRequest;
     private final Channels channels;
 
-    public static class ResolveFacilityRequest extends SimpleMediatorRequest<String> {
+    public static class ResolveFacilityRequest extends SimpleMediatorRequest<FacilityRequestInput> {
 
-        public ResolveFacilityRequest(ActorRef requestHandler, ActorRef respondTo, String code) {
-            super(requestHandler, respondTo, code);
+        public ResolveFacilityRequest(ActorRef requestHandler, ActorRef respondTo, FacilityRequestInput facilityRequestInput) {
+            super(requestHandler, respondTo, facilityRequestInput);
         }
     }
 
@@ -59,12 +60,13 @@ public class FacilityOrchestrator extends UntypedActor {
         originalRequest = request;
 
         List<Pair<String, String>> params = new ArrayList<>();
-        params.add(new ImmutablePair<>("filter", "code:eq:" + request.getRequestObject()));
+        params.add(new ImmutablePair<>("filter", "code:eq:" + request.getRequestObject().getFacilityCode()));
         params.add(new ImmutablePair<>("fields", "id,code"));
         params.add(new ImmutablePair<>("paging", "false"));
 
         Map<String, String> headers = new LinkedHashMap<>();
-        headers.put("Authorization", (String) config.getDynamicConfig().get("dhisAuthorization"));
+        headers.put("Authorization", request.getRequestObject().getDhisAuthorization());
+        headers.put("x-parent-openhim-transaction-id", request.getRequestObject().getParentOpenHIMTranId());
 
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 request.getRequestHandler(),

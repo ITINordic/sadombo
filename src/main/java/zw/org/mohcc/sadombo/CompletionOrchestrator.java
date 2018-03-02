@@ -24,19 +24,19 @@ import zw.org.mohcc.sadombo.utils.ConfigUtility;
 public class CompletionOrchestrator extends UntypedActor {
 
     private final MediatorConfig config;
-    private ResolveCompletionRequest originalRequest;
+    private CompletionRequest originalRequest;
     private final Channels channels;
 
-    public static class ResolveCompletionRequest extends SimpleMediatorRequest<CompletionInput> {
+    public static class CompletionRequest extends SimpleMediatorRequest<CompletionInput> {
 
-        public ResolveCompletionRequest(ActorRef requestHandler, ActorRef respondTo, CompletionInput completionInput) {
+        public CompletionRequest(ActorRef requestHandler, ActorRef respondTo, CompletionInput completionInput) {
             super(requestHandler, respondTo, completionInput);
         }
     }
 
-    public static class ResolveCompletionResponse extends SimpleMediatorResponse<String> {
+    public static class CompletionResponse extends SimpleMediatorResponse<String> {
 
-        public ResolveCompletionResponse(MediatorRequestMessage originalRequest, String id) {
+        public CompletionResponse(MediatorRequestMessage originalRequest, String id) {
             super(originalRequest, id);
         }
     }
@@ -48,20 +48,19 @@ public class CompletionOrchestrator extends UntypedActor {
         this.channels = ConfigUtility.getChannels(config);
     }
 
-    private void sendCompletionRequest(ResolveCompletionRequest request) {
+    private void sendCompletionRequest(CompletionRequest request) {
 
         String requestPath = "/api/completeDataSetRegistrations";
         originalRequest = request;
-
-        String period = request.getRequestObject().getPeriod().substring(0, 7).replaceAll("-", "");
-
         String requestBody = "<completeDataSetRegistrations \n"
                 + "  xmlns=\"http://dhis2.org/schema/dxf/2.0\">\n"
-                + "  <completeDataSetRegistration dataSet=\"" + request.getRequestObject().getDataSetId() + "\" period=\"" + period + "\"  organisationUnit=\"" + request.getRequestObject().getFacilityId() + "\" />\n"
+                + "  <completeDataSetRegistration dataSet=\"" + request.getRequestObject().getDataSetId() + "\" period=\"" + request.getRequestObject().getPeriod() + "\"  organisationUnit=\"" + request.getRequestObject().getFacilityId() + "\" />\n"
                 + "</completeDataSetRegistrations>";
 
         Map<String, String> headers = new LinkedHashMap<>();
-        headers.put("Authorization", (String) config.getDynamicConfig().get("dhisAuthorization"));
+        headers.put("Authorization", request.getRequestObject().getDhisAuthorization());
+        headers.put("x-parent-openhim-transaction-id", request.getRequestObject().getParentOpenHIMTranId());
+        headers.put("Content-Type", "application/xml");
 
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 request.getRequestHandler(),
@@ -77,25 +76,21 @@ public class CompletionOrchestrator extends UntypedActor {
                 null
         );
 
-        serviceRequest.getHeaders().put("Authorization", (String) config.getDynamicConfig().get("dhisAuthorization"));
-        serviceRequest.getHeaders().put("Content-Type", "application/xml");
-
         ActorSelection httpConnector = getContext().actorSelection(config.userPathFor("http-connector"));
         httpConnector.tell(serviceRequest, getSelf());
 
     }
 
     private void processCompletionServiceResponse(MediatorHTTPResponse response) throws IOException {
-        ResolveCompletionResponse resolveCompletionResponse = new ResolveCompletionResponse(originalRequest, "complete");
-        originalRequest.getRespondTo().tell(resolveCompletionResponse, getSelf());
-
+        CompletionResponse completionResponse = new CompletionResponse(originalRequest, "complete");
+        originalRequest.getRespondTo().tell(completionResponse, getSelf());
     }
 
     @Override
     public void onReceive(Object msg) throws Exception {
-        if (msg instanceof ResolveCompletionRequest) {
+        if (msg instanceof CompletionRequest) {
             log.info("ResolveCompletionRequest");
-            sendCompletionRequest((ResolveCompletionRequest) msg);
+            sendCompletionRequest((CompletionRequest) msg);
         } else if (msg instanceof MediatorHTTPResponse) {
             processCompletionServiceResponse((MediatorHTTPResponse) msg);
         } else {

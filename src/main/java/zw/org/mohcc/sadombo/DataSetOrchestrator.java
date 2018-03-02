@@ -20,6 +20,7 @@ import org.openhim.mediator.engine.messages.MediatorRequestMessage;
 import org.openhim.mediator.engine.messages.SimpleMediatorRequest;
 import org.openhim.mediator.engine.messages.SimpleMediatorResponse;
 import zw.org.mohcc.sadombo.data.DataSet;
+import zw.org.mohcc.sadombo.data.DataSetRequestInput;
 import zw.org.mohcc.sadombo.data.DataSetWrapper;
 import zw.org.mohcc.sadombo.utils.ConfigUtility;
 
@@ -33,10 +34,10 @@ public class DataSetOrchestrator extends UntypedActor {
     private ResolveDataSetRequest originalRequest;
     private final Channels channels;
 
-    public static class ResolveDataSetRequest extends SimpleMediatorRequest<String> {
+    public static class ResolveDataSetRequest extends SimpleMediatorRequest<DataSetRequestInput> {
 
-        public ResolveDataSetRequest(ActorRef requestHandler, ActorRef respondTo, String code) {
-            super(requestHandler, respondTo, code);
+        public ResolveDataSetRequest(ActorRef requestHandler, ActorRef respondTo, DataSetRequestInput dataSetRequestInput) {
+            super(requestHandler, respondTo, dataSetRequestInput);
         }
     }
 
@@ -60,12 +61,13 @@ public class DataSetOrchestrator extends UntypedActor {
         originalRequest = request;
 
         List<Pair<String, String>> params = new ArrayList<>();
-        params.add(new ImmutablePair<>("filter", "code:eq:" + request.getRequestObject()));
+        params.add(new ImmutablePair<>("filter", "code:eq:" + request.getRequestObject().getDataSetCode()));
         params.add(new ImmutablePair<>("fields", "id,code"));
         params.add(new ImmutablePair<>("paging", "false"));
 
         Map<String, String> headers = new LinkedHashMap<>();
-        headers.put("Authorization", (String) config.getDynamicConfig().get("dhisAuthorization"));
+        headers.put("Authorization", request.getRequestObject().getDhisAuthorization());
+        headers.put("x-parent-openhim-transaction-id", request.getRequestObject().getParentOpenHIMTranId());
 
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 request.getRequestHandler(),

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, ITINordic
  * All rights reserved.
  *
@@ -45,6 +45,8 @@ import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPResponse;
 import zw.org.mohcc.sadombo.data.CompletionInput;
 import zw.org.mohcc.sadombo.data.DataSet;
+import zw.org.mohcc.sadombo.data.DataSetRequestInput;
+import zw.org.mohcc.sadombo.data.FacilityRequestInput;
 import zw.org.mohcc.sadombo.data.Group;
 import zw.org.mohcc.sadombo.data.OrganisationUnit;
 import zw.org.mohcc.sadombo.mapper.RequestHeaderMapper;
@@ -76,9 +78,12 @@ public class DhisOrchestrator extends UntypedActor {
 
     private DataSet resolvedDataSet;
     private OrganisationUnit resolvedOrganisationUnit;
-    private String completionResponse;
+    private boolean dataSetResolved = false;
+    private boolean organisationUnitResolved = false;
     private Group group;
     private FinishRequest processDhisFinishRequest;
+    private String parentOpenHIMTranId;
+    private String dhisAuthorization = null;
 
     public DhisOrchestrator(MediatorConfig config) throws IOException {
         this.config = config;
@@ -94,31 +99,22 @@ public class DhisOrchestrator extends UntypedActor {
     @Override
     public void onReceive(Object msg) throws Exception {
         if (msg instanceof MediatorHTTPRequest) {
-            MediatorHTTPRequest request = (MediatorHTTPRequest) msg;
-            if (securityManager.isUserAllowed(request, config)) {
-                try {
-                    processRequest((MediatorHTTPRequest) msg);
-                } catch (SadomboException ex) {
-                    log.error(ex, "Error occurred when querying ");
-                    request.getRequestHandler().tell(new ExceptError(ex), getSelf());
-                }
-            } else {
-                FinishRequest finishRequest = new FinishRequest("Not allowed", "text/plain", HttpStatus.SC_FORBIDDEN);
-                request.getRequestHandler().tell(finishRequest, getSelf());
-            }
+            processRequest((MediatorHTTPRequest) msg);
         } else if (msg instanceof MediatorHTTPResponse) {
             processDhisResponse((MediatorHTTPResponse) msg);
         } else if (msg instanceof DataSetOrchestrator.ResolveDataSetResponse) {
             log.info("DataSetOrchestrator.ResolveDataSetResponse");
             resolvedDataSet = ((DataSetOrchestrator.ResolveDataSetResponse) msg).getResponseObject();
+            dataSetResolved = true;
             completeRequest();
         } else if (msg instanceof FacilityOrchestrator.ResolveFacilityResponse) {
             log.info("FacilityOrchestrator.ResolveFacilityResponse");
             resolvedOrganisationUnit = ((FacilityOrchestrator.ResolveFacilityResponse) msg).getResponseObject();
+            organisationUnitResolved = true;
             completeRequest();
-        } else if (msg instanceof CompletionOrchestrator.ResolveCompletionResponse) {
+        } else if (msg instanceof CompletionOrchestrator.CompletionResponse) {
             log.info("CompletionOrchestrator.ResolveCompletionResponse");
-            completionResponse = ((CompletionOrchestrator.ResolveCompletionResponse) msg).getResponseObject();
+            ((CompletionOrchestrator.CompletionResponse) msg).getResponseObject();
             finalizeRequest();
         } else {
             unhandled(msg);
@@ -126,6 +122,21 @@ public class DhisOrchestrator extends UntypedActor {
     }
 
     private void processRequest(MediatorHTTPRequest request) {
+        if (securityManager.isUserAllowed(request, config)) {
+            try {
+                parentOpenHIMTranId = request.getHeaders().get("x-openhim-transactionid");
+                processDHISRequest(request);
+            } catch (SadomboException ex) {
+                log.error(ex, "Error occurred when querying ");
+                request.getRequestHandler().tell(new ExceptError(ex), getSelf());
+            }
+        } else {
+            FinishRequest finishRequest = new FinishRequest("Not allowed", "text/plain", HttpStatus.SC_FORBIDDEN);
+            request.getRequestHandler().tell(finishRequest, getSelf());
+        }
+    }
+
+    private void processDHISRequest(MediatorHTTPRequest request) {
         log.info("Querying the DHIS service");
         originalRequest = request;
         Validation validation = requestValidator.validate(request);
@@ -167,13 +178,14 @@ public class DhisOrchestrator extends UntypedActor {
             group = getGroup(originalRequest);
             //Get data set id
             DataSetOrchestrator.ResolveDataSetRequest dataSetRequest = new DataSetOrchestrator.ResolveDataSetRequest(
-                    originalRequest.getRequestHandler(), getSelf(), group.getDataSet());
+                    originalRequest.getRequestHandler(), getSelf(), new DataSetRequestInput(group.getDataSet(), dhisAuthorization, parentOpenHIMTranId));
+
             ActorRef dataSetOrchestrator = getContext().actorOf(Props.create(DataSetOrchestrator.class, config));
             dataSetOrchestrator.tell(dataSetRequest, getSelf());
 
             //Get facility id
             FacilityOrchestrator.ResolveFacilityRequest facilityRequest = new FacilityOrchestrator.ResolveFacilityRequest(
-                    originalRequest.getRequestHandler(), getSelf(), group.getOrgUnit());
+                    originalRequest.getRequestHandler(), getSelf(), new FacilityRequestInput(group.getOrgUnit(), dhisAuthorization, parentOpenHIMTranId));
             ActorRef facilityOrchestrator = getContext().actorOf(Props.create(FacilityOrchestrator.class, config));
             facilityOrchestrator.tell(facilityRequest, getSelf());
         } else {
@@ -184,11 +196,13 @@ public class DhisOrchestrator extends UntypedActor {
 
     private void completeRequest() {
         if (resolvedDataSet != null && resolvedOrganisationUnit != null) {
-            CompletionOrchestrator.ResolveCompletionRequest completionRequest = new CompletionOrchestrator.ResolveCompletionRequest(
-                    originalRequest.getRequestHandler(), getSelf(), new CompletionInput(resolvedOrganisationUnit.getId(), resolvedDataSet.getId(), group.getPeriod()));
-            ActorRef providerResolver = getContext().actorOf(Props.create(CompletionOrchestrator.class,
-                    config));
-            providerResolver.tell(completionRequest, getSelf());
+            String period = getPeriodForCompletion(group.getPeriod());
+            CompletionOrchestrator.CompletionRequest completionRequest = new CompletionOrchestrator.CompletionRequest(
+                    originalRequest.getRequestHandler(), getSelf(), new CompletionInput(resolvedOrganisationUnit.getId(), resolvedDataSet.getId(), period, dhisAuthorization, parentOpenHIMTranId));
+            ActorRef completionOrchestrator = getContext().actorOf(Props.create(CompletionOrchestrator.class, config));
+            completionOrchestrator.tell(completionRequest, getSelf());
+        } else if ((dataSetResolved && organisationUnitResolved) && (resolvedOrganisationUnit == null || resolvedDataSet == null)) {
+            finalizeRequest();
         }
     }
 
@@ -197,21 +211,18 @@ public class DhisOrchestrator extends UntypedActor {
     }
 
     private void addAuthorizationHeader(Map<String, String> headers, MediatorHTTPRequest request) {
-        String dhisAuthorization = null;
         if (request.getHeaders() != null & !request.getHeaders().isEmpty()) {
             dhisAuthorization = request.getHeaders().get("x-dhis-authorization");
         }
 
         if (dhisAuthorization != null && !dhisAuthorization.trim().isEmpty()) {
             headers.put("Authorization", dhisAuthorization);
-            config.getDynamicConfig().put("dhisAuthorization", dhisAuthorization);
         } else {
             String dhisChannelUser = channels.getDhisChannelUser();
             String dhisChannelPassword = channels.getDhisChannelPassword();
             if (dhisChannelUser != null && dhisChannelPassword != null && !dhisChannelUser.trim().isEmpty() && !dhisChannelPassword.trim().isEmpty()) {
                 dhisAuthorization = getBasicAuthorization(dhisChannelUser, dhisChannelPassword);
                 headers.put("Authorization", dhisAuthorization);
-                config.getDynamicConfig().put("dhisAuthorization", dhisAuthorization);
             }
         }
     }
@@ -222,14 +233,21 @@ public class DhisOrchestrator extends UntypedActor {
             Document doc = GeneralUtility.getJDom2Document(request.getBody());
             Element rootNode = doc.getRootElement();
             Element groupElement = rootNode.getChild("group", namespace);
-            group = new Group();
-            group.setOrgUnit(groupElement.getAttribute("orgUnit").getValue());
-            group.setDataSet(groupElement.getAttribute("dataSet").getValue());
-            group.setPeriod(groupElement.getAttribute("period").getValue());
-            return group;
+            Group adxGroup = new Group();
+            adxGroup.setOrgUnit(groupElement.getAttribute("orgUnit").getValue());
+            adxGroup.setDataSet(groupElement.getAttribute("dataSet").getValue());
+            adxGroup.setPeriod(groupElement.getAttribute("period").getValue());
+            return adxGroup;
         } catch (IOException | JDOMException exception) {
             throw new SadomboException(exception);
         }
+    }
+
+    private String getPeriodForCompletion(String period) {
+        if (period != null && period.length() >= 7) {
+            period = period.substring(0, 7).replaceAll("-", "");
+        }
+        return period;
     }
 
 }
