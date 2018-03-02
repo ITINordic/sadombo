@@ -52,8 +52,8 @@ public class CompletionOrchestrator extends UntypedActor {
 
         String requestPath = "/api/completeDataSetRegistrations";
         originalRequest = request;
-        String requestBody = "<completeDataSetRegistrations \n"
-                + "  xmlns=\"http://dhis2.org/schema/dxf/2.0\">\n"
+        String requestBody
+                = "<completeDataSetRegistrations xmlns=\"http://dhis2.org/schema/dxf/2.0\">\n"
                 + "  <completeDataSetRegistration dataSet=\"" + request.getRequestObject().getDataSetId() + "\" period=\"" + request.getRequestObject().getPeriod() + "\"  organisationUnit=\"" + request.getRequestObject().getFacilityId() + "\" />\n"
                 + "</completeDataSetRegistrations>";
 
