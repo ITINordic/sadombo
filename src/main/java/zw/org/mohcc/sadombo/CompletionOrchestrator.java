@@ -65,7 +65,7 @@ public class CompletionOrchestrator extends UntypedActor {
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 request.getRequestHandler(),
                 getSelf(),
-                "DHIS Service",
+                "Complete DataSet Registration (DHIS)",
                 "POST",
                 channels.getDhisChannelScheme(),
                 channels.getDhisChannelHost(),

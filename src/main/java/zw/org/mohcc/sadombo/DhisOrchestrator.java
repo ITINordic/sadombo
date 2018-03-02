@@ -156,7 +156,7 @@ public class DhisOrchestrator extends UntypedActor {
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 actorRef,
                 getSelf(),
-                "DHIS Service",
+                "Top request (DHIS)",
                 requestTarget.getMethod(),
                 channels.getDhisChannelScheme(),
                 channels.getDhisChannelHost(),

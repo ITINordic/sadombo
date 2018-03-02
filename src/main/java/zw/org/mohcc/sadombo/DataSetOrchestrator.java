@@ -72,7 +72,7 @@ public class DataSetOrchestrator extends UntypedActor {
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 request.getRequestHandler(),
                 getSelf(),
-                "DHIS Service",
+                "Get DataSet(DHIS)",
                 "GET",
                 channels.getDhisChannelScheme(),
                 channels.getDhisChannelHost(),

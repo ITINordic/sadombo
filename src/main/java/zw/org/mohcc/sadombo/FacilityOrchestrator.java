@@ -71,7 +71,7 @@ public class FacilityOrchestrator extends UntypedActor {
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 request.getRequestHandler(),
                 getSelf(),
-                "DHIS Service",
+                "Get Facility/OrganizationUnit (DHIS)",
                 "GET",
                 channels.getDhisChannelScheme(),
                 channels.getDhisChannelHost(),
