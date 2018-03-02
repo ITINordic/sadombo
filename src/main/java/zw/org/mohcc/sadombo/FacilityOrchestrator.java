@@ -61,7 +61,7 @@ public class FacilityOrchestrator extends UntypedActor {
 
         List<Pair<String, String>> params = new ArrayList<>();
         params.add(new ImmutablePair<>("filter", "code:eq:" + request.getRequestObject().getFacilityCode()));
-        params.add(new ImmutablePair<>("fields", "id,code"));
+        params.add(new ImmutablePair<>("fields", "id,code,name"));
         params.add(new ImmutablePair<>("paging", "false"));
 
         Map<String, String> headers = new LinkedHashMap<>();
