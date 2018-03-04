@@ -115,8 +115,8 @@ public class DhisOrchestrator extends UntypedActor {
             dataSetOutput = resolveDataSetResponse.getResponseObject();
             completeDataSetRegistrationRequest();
         } else if (msg instanceof ResolveOrganisationUnitResponse) {
-            ResolveOrganisationUnitResponse resolveFacilityResponse = (ResolveOrganisationUnitResponse) msg;
-            organisationUnitOutput = resolveFacilityResponse.getResponseObject();
+            ResolveOrganisationUnitResponse resolveOrganisationUnitResponse = (ResolveOrganisationUnitResponse) msg;
+            organisationUnitOutput = resolveOrganisationUnitResponse.getResponseObject();
             completeDataSetRegistrationRequest();
         } else if (msg instanceof CompletionResponse) {
             CompletionResponse completionResponse = ((CompletionResponse) msg);
@@ -194,14 +194,14 @@ public class DhisOrchestrator extends UntypedActor {
         ResolveDataSetRequest dataSetRequest = new ResolveDataSetRequest(
                 originalRequest.getRequestHandler(), getSelf(), new DataSetInput(group.getDataSet(), dhisAuthorization, parentOpenHIMTranId));
 
-        ActorRef dataSetActor = getContext().actorOf(Props.create(GetDataSetActor.class, config));
-        dataSetActor.tell(dataSetRequest, getSelf());
+        ActorRef getDataSetActor = getContext().actorOf(Props.create(GetDataSetActor.class, config));
+        getDataSetActor.tell(dataSetRequest, getSelf());
 
         //Get facility id
-        ResolveOrganisationUnitRequest facilityRequest = new ResolveOrganisationUnitRequest(
+        ResolveOrganisationUnitRequest organisationUnitRequest = new ResolveOrganisationUnitRequest(
                 originalRequest.getRequestHandler(), getSelf(), new OrganisationUnitInput(group.getOrgUnit(), dhisAuthorization, parentOpenHIMTranId));
-        ActorRef organisationUnitActor = getContext().actorOf(Props.create(GetOrganisationUnitActor.class, config));
-        organisationUnitActor.tell(facilityRequest, getSelf());
+        ActorRef getOrganisationUnitActor = getContext().actorOf(Props.create(GetOrganisationUnitActor.class, config));
+        getOrganisationUnitActor.tell(organisationUnitRequest, getSelf());
     }
 
     private void completeDataSetRegistrationRequest() {
