@@ -43,12 +43,19 @@ import org.openhim.mediator.engine.messages.ExceptError;
 import org.openhim.mediator.engine.messages.FinishRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPRequest;
 import org.openhim.mediator.engine.messages.MediatorHTTPResponse;
+import zw.org.mohcc.sadombo.CompletionActor.CompletionResponse;
+import zw.org.mohcc.sadombo.GetDataSetActor.ResolveDataSetRequest;
+import zw.org.mohcc.sadombo.GetDataSetActor.ResolveDataSetResponse;
+import zw.org.mohcc.sadombo.GetOrganisationUnitActor.ResolveOrganisationUnitRequest;
+import zw.org.mohcc.sadombo.GetOrganisationUnitActor.ResolveOrganisationUnitResponse;
 import zw.org.mohcc.sadombo.data.CompletionInput;
 import zw.org.mohcc.sadombo.data.DataSet;
-import zw.org.mohcc.sadombo.data.DataSetRequestInput;
-import zw.org.mohcc.sadombo.data.FacilityRequestInput;
+import zw.org.mohcc.sadombo.data.DataSetInput;
+import zw.org.mohcc.sadombo.data.DataSetOutput;
 import zw.org.mohcc.sadombo.data.Group;
 import zw.org.mohcc.sadombo.data.OrganisationUnit;
+import zw.org.mohcc.sadombo.data.OrganisationUnitInput;
+import zw.org.mohcc.sadombo.data.OrganisationUnitOutput;
 import zw.org.mohcc.sadombo.mapper.RequestHeaderMapper;
 import zw.org.mohcc.sadombo.mapper.RequestTarget;
 import zw.org.mohcc.sadombo.mapper.RequestTargetMapper;
@@ -76,14 +83,13 @@ public class DhisOrchestrator extends UntypedActor {
     private final SecurityManager securityManager;
     private final RequestHeaderMapper requestHeaderMapper;
 
-    private DataSet resolvedDataSet;
-    private OrganisationUnit resolvedOrganisationUnit;
-    private boolean dataSetResolved = false;
-    private boolean organisationUnitResolved = false;
+    private DataSetOutput dataSetOutput;
+    private OrganisationUnitOutput organisationUnitOutput;
     private Group group;
-    private FinishRequest processDhisFinishRequest;
+    private FinishRequest finalFinishRequest;
     private String parentOpenHIMTranId;
     private String dhisAuthorization = null;
+    private MediatorHTTPResponse dhisMasterResponse;
 
     public DhisOrchestrator(MediatorConfig config) throws IOException {
         this.config = config;
@@ -99,22 +105,22 @@ public class DhisOrchestrator extends UntypedActor {
     @Override
     public void onReceive(Object msg) throws Exception {
         if (msg instanceof MediatorHTTPRequest) {
-            processRequest((MediatorHTTPRequest) msg);
+            MediatorHTTPRequest mediatorHTTPRequest = (MediatorHTTPRequest) msg;
+            processRequest(mediatorHTTPRequest);
         } else if (msg instanceof MediatorHTTPResponse) {
-            processDhisResponse((MediatorHTTPResponse) msg);
-        } else if (msg instanceof DataSetOrchestrator.ResolveDataSetResponse) {
-            log.info("DataSetOrchestrator.ResolveDataSetResponse");
-            resolvedDataSet = ((DataSetOrchestrator.ResolveDataSetResponse) msg).getResponseObject();
-            dataSetResolved = true;
-            completeRequest();
-        } else if (msg instanceof FacilityOrchestrator.ResolveFacilityResponse) {
-            log.info("FacilityOrchestrator.ResolveFacilityResponse");
-            resolvedOrganisationUnit = ((FacilityOrchestrator.ResolveFacilityResponse) msg).getResponseObject();
-            organisationUnitResolved = true;
-            completeRequest();
-        } else if (msg instanceof CompletionOrchestrator.CompletionResponse) {
-            log.info("CompletionOrchestrator.ResolveCompletionResponse");
-            ((CompletionOrchestrator.CompletionResponse) msg).getResponseObject();
+            MediatorHTTPResponse dhisMediatorHTTPResponse = (MediatorHTTPResponse) msg;
+            processDhisResponse(dhisMediatorHTTPResponse);
+        } else if (msg instanceof ResolveDataSetResponse) {
+            ResolveDataSetResponse resolveDataSetResponse = (ResolveDataSetResponse) msg;
+            dataSetOutput = resolveDataSetResponse.getResponseObject();
+            completeDataSetRegistrationRequest();
+        } else if (msg instanceof ResolveOrganisationUnitResponse) {
+            ResolveOrganisationUnitResponse resolveFacilityResponse = (ResolveOrganisationUnitResponse) msg;
+            organisationUnitOutput = resolveFacilityResponse.getResponseObject();
+            completeDataSetRegistrationRequest();
+        } else if (msg instanceof CompletionResponse) {
+            CompletionResponse completionResponse = ((CompletionResponse) msg);
+            completionResponse.getResponseObject();
             finalizeRequest();
         } else {
             unhandled(msg);
@@ -156,7 +162,7 @@ public class DhisOrchestrator extends UntypedActor {
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 actorRef,
                 getSelf(),
-                "Top request (DHIS)",
+                "Master request (DHIS)",
                 requestTarget.getMethod(),
                 channels.getDhisChannelScheme(),
                 channels.getDhisChannelHost(),
@@ -172,42 +178,50 @@ public class DhisOrchestrator extends UntypedActor {
 
     private void processDhisResponse(MediatorHTTPResponse response) {
         log.info("Received response from DHIS service");
-        processDhisFinishRequest = responseTransformer.transform(response, originalRequest);
-
+        dhisMasterResponse = response;
+        finalFinishRequest = responseTransformer.transform(dhisMasterResponse, originalRequest);
         if (AdxUtility.hasAdxContentType(originalRequest) && !GeneralUtility.hasEmptyRequestBody(originalRequest)) {
-            group = getGroup(originalRequest);
-            //Get data set id
-            DataSetOrchestrator.ResolveDataSetRequest dataSetRequest = new DataSetOrchestrator.ResolveDataSetRequest(
-                    originalRequest.getRequestHandler(), getSelf(), new DataSetRequestInput(group.getDataSet(), dhisAuthorization, parentOpenHIMTranId));
-
-            ActorRef dataSetOrchestrator = getContext().actorOf(Props.create(DataSetOrchestrator.class, config));
-            dataSetOrchestrator.tell(dataSetRequest, getSelf());
-
-            //Get facility id
-            FacilityOrchestrator.ResolveFacilityRequest facilityRequest = new FacilityOrchestrator.ResolveFacilityRequest(
-                    originalRequest.getRequestHandler(), getSelf(), new FacilityRequestInput(group.getOrgUnit(), dhisAuthorization, parentOpenHIMTranId));
-            ActorRef facilityOrchestrator = getContext().actorOf(Props.create(FacilityOrchestrator.class, config));
-            facilityOrchestrator.tell(facilityRequest, getSelf());
+            finishPostAdxOrchestration();
         } else {
             finalizeRequest();
         }
 
     }
 
-    private void completeRequest() {
-        if (resolvedDataSet != null && resolvedOrganisationUnit != null) {
-            String period = getPeriodForCompletion(group.getPeriod());
-            CompletionOrchestrator.CompletionRequest completionRequest = new CompletionOrchestrator.CompletionRequest(
-                    originalRequest.getRequestHandler(), getSelf(), new CompletionInput(resolvedOrganisationUnit.getId(), resolvedDataSet.getId(), period, dhisAuthorization, parentOpenHIMTranId));
-            ActorRef completionOrchestrator = getContext().actorOf(Props.create(CompletionOrchestrator.class, config));
-            completionOrchestrator.tell(completionRequest, getSelf());
-        } else if ((dataSetResolved && organisationUnitResolved) && (resolvedOrganisationUnit == null || resolvedDataSet == null)) {
-            finalizeRequest();
+    private void finishPostAdxOrchestration() {
+        group = getGroup(originalRequest);
+        //Get data set id
+        ResolveDataSetRequest dataSetRequest = new ResolveDataSetRequest(
+                originalRequest.getRequestHandler(), getSelf(), new DataSetInput(group.getDataSet(), dhisAuthorization, parentOpenHIMTranId));
+
+        ActorRef dataSetActor = getContext().actorOf(Props.create(GetDataSetActor.class, config));
+        dataSetActor.tell(dataSetRequest, getSelf());
+
+        //Get facility id
+        ResolveOrganisationUnitRequest facilityRequest = new ResolveOrganisationUnitRequest(
+                originalRequest.getRequestHandler(), getSelf(), new OrganisationUnitInput(group.getOrgUnit(), dhisAuthorization, parentOpenHIMTranId));
+        ActorRef organisationUnitActor = getContext().actorOf(Props.create(GetOrganisationUnitActor.class, config));
+        organisationUnitActor.tell(facilityRequest, getSelf());
+    }
+
+    private void completeDataSetRegistrationRequest() {
+        if (dataSetOutput != null && organisationUnitOutput != null) {
+            if (dataSetOutput.hasDataSet() && organisationUnitOutput.hasOrganisationUnit()) {
+                DataSet dataSet = dataSetOutput.getDataSet();
+                OrganisationUnit organisationUnit = organisationUnitOutput.getOrganisationUnit();
+                String period = getPeriodForCompletion(group.getPeriod());
+                CompletionActor.CompletionRequest completionRequest = new CompletionActor.CompletionRequest(
+                        originalRequest.getRequestHandler(), getSelf(), new CompletionInput(organisationUnit.getId(), dataSet.getId(), period, dhisAuthorization, parentOpenHIMTranId));
+                ActorRef completionActor = getContext().actorOf(Props.create(CompletionActor.class, config));
+                completionActor.tell(completionRequest, getSelf());
+            } else {
+                finalizeRequest();
+            }
         }
     }
 
     private void finalizeRequest() {
-        originalRequest.getRespondTo().tell(processDhisFinishRequest, getSelf());
+        originalRequest.getRespondTo().tell(finalFinishRequest, getSelf());
     }
 
     private void addAuthorizationHeader(Map<String, String> headers, MediatorHTTPRequest request) {

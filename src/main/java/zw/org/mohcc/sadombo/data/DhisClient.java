@@ -68,7 +68,7 @@ public class DhisClient {
         String bodyString = body.string();
         if (response.isSuccessful()) {
             ObjectMapper mapper = new ObjectMapper();
-            DataSetWrapper dataSetWrapper = mapper.readValue(bodyString, DataSetWrapper.class);
+            DataSetsWrapper dataSetWrapper = mapper.readValue(bodyString, DataSetsWrapper.class);
             DataSet dataSet = null;
             List<DataSet> dataSets = dataSetWrapper.getDataSets();
             if (dataSets != null && !dataSets.isEmpty()) {

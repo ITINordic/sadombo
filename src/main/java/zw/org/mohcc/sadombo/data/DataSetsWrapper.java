@@ -31,7 +31,7 @@ import java.util.List;
  *
  * @author Charles Chigoriwa
  */
-public class DataSetWrapper {
+public class DataSetsWrapper {
 
     private List<DataSet> dataSets;
 

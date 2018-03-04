@@ -20,37 +20,38 @@ import org.openhim.mediator.engine.messages.MediatorRequestMessage;
 import org.openhim.mediator.engine.messages.SimpleMediatorRequest;
 import org.openhim.mediator.engine.messages.SimpleMediatorResponse;
 import zw.org.mohcc.sadombo.data.DataSet;
-import zw.org.mohcc.sadombo.data.DataSetRequestInput;
-import zw.org.mohcc.sadombo.data.DataSetWrapper;
+import zw.org.mohcc.sadombo.data.DataSetInput;
+import zw.org.mohcc.sadombo.data.DataSetOutput;
+import zw.org.mohcc.sadombo.data.DataSetsWrapper;
 import zw.org.mohcc.sadombo.utils.ConfigUtility;
 
 /**
  *
  * @author Charles Chigoriwa
  */
-public class DataSetOrchestrator extends UntypedActor {
+public class GetDataSetActor extends UntypedActor {
 
     private final MediatorConfig config;
     private ResolveDataSetRequest originalRequest;
     private final Channels channels;
 
-    public static class ResolveDataSetRequest extends SimpleMediatorRequest<DataSetRequestInput> {
+    public static class ResolveDataSetRequest extends SimpleMediatorRequest<DataSetInput> {
 
-        public ResolveDataSetRequest(ActorRef requestHandler, ActorRef respondTo, DataSetRequestInput dataSetRequestInput) {
+        public ResolveDataSetRequest(ActorRef requestHandler, ActorRef respondTo, DataSetInput dataSetRequestInput) {
             super(requestHandler, respondTo, dataSetRequestInput);
         }
     }
 
-    public static class ResolveDataSetResponse extends SimpleMediatorResponse<DataSet> {
+    public static class ResolveDataSetResponse extends SimpleMediatorResponse<DataSetOutput> {
 
-        public ResolveDataSetResponse(MediatorRequestMessage originalRequest, DataSet dataSet) {
-            super(originalRequest, dataSet);
+        public ResolveDataSetResponse(MediatorRequestMessage originalRequest, DataSetOutput dataSetOutput) {
+            super(originalRequest, dataSetOutput);
         }
     }
 
     LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
-    public DataSetOrchestrator(MediatorConfig config) {
+    public GetDataSetActor(MediatorConfig config) {
         this.config = config;
         this.channels = ConfigUtility.getChannels(config);
     }
@@ -60,14 +61,19 @@ public class DataSetOrchestrator extends UntypedActor {
         String requestPath = "/api/dataSets";
         originalRequest = request;
 
+        DataSetInput dataSetRequestInput = request.getRequestObject();
+        String dataSetCode = dataSetRequestInput.getDataSetCode();
+        String dhisAuthorization = dataSetRequestInput.getDhisAuthorization();
+        String parentOpenHIMTranId = dataSetRequestInput.getParentOpenHIMTranId();
+
         List<Pair<String, String>> params = new ArrayList<>();
-        params.add(new ImmutablePair<>("filter", "code:eq:" + request.getRequestObject().getDataSetCode()));
+        params.add(new ImmutablePair<>("filter", "code:eq:" + dataSetCode));
         params.add(new ImmutablePair<>("fields", "id,code,name"));
         params.add(new ImmutablePair<>("paging", "false"));
 
         Map<String, String> headers = new LinkedHashMap<>();
-        headers.put("Authorization", request.getRequestObject().getDhisAuthorization());
-        headers.put("x-parent-openhim-transaction-id", request.getRequestObject().getParentOpenHIMTranId());
+        headers.put("Authorization", dhisAuthorization);
+        headers.put("x-parent-openhim-transaction-id", parentOpenHIMTranId);
 
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 request.getRequestHandler(),
@@ -90,14 +96,13 @@ public class DataSetOrchestrator extends UntypedActor {
 
     private void processDataSetServiceResponse(MediatorHTTPResponse response) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        DataSetWrapper dataSetWrapper = mapper.readValue(response.getBody(), DataSetWrapper.class);
-        DataSet organisation = null;
-        List<DataSet> organisations = dataSetWrapper.getDataSets();
-        if (organisations != null && !organisations.isEmpty()) {
-            organisation = organisations.get(0);
+        DataSetsWrapper dataSetsWrapper = mapper.readValue(response.getBody(), DataSetsWrapper.class);
+        DataSet dataSet = null;
+        List<DataSet> dataSets = dataSetsWrapper.getDataSets();
+        if (dataSets != null && !dataSets.isEmpty()) {
+            dataSet = dataSets.get(0);
         }
-
-        ResolveDataSetResponse resolveDataSetResponse = new ResolveDataSetResponse(originalRequest, organisation);
+        ResolveDataSetResponse resolveDataSetResponse = new ResolveDataSetResponse(originalRequest, new DataSetOutput(dataSet));
         originalRequest.getRespondTo().tell(resolveDataSetResponse, getSelf());
 
     }

@@ -4,27 +4,27 @@ package zw.org.mohcc.sadombo.data;
  *
  * @author Charles Chigoriwa
  */
-public class DataSetRequestInput {
+public class OrganisationUnitInput {
 
-    private String dataSetCode;
+    private String facilityCode;
     private String dhisAuthorization;
     private String parentOpenHIMTranId;
 
-    public DataSetRequestInput() {
+    public OrganisationUnitInput() {
     }
 
-    public DataSetRequestInput(String dataSetCode, String dhisAuthorization, String parentOpenHIMTranId) {
-        this.dataSetCode = dataSetCode;
+    public OrganisationUnitInput(String facilityCode, String dhisAuthorization, String parentOpenHIMTranId) {
+        this.facilityCode = facilityCode;
         this.dhisAuthorization = dhisAuthorization;
         this.parentOpenHIMTranId = parentOpenHIMTranId;
     }
 
-    public String getDataSetCode() {
-        return dataSetCode;
+    public String getFacilityCode() {
+        return facilityCode;
     }
 
-    public void setDataSetCode(String dataSetCode) {
-        this.dataSetCode = dataSetCode;
+    public void setFacilityCode(String facilityCode) {
+        this.facilityCode = facilityCode;
     }
 
     public String getDhisAuthorization() {

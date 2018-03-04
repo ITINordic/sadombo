@@ -6,7 +6,7 @@ import java.util.List;
  *
  * @author Charles Chigoriwa
  */
-public class OrganisationUnitWrapper {
+public class OrganisationUnitsWrapper {
 
     private List<OrganisationUnit> organisationUnits;
 

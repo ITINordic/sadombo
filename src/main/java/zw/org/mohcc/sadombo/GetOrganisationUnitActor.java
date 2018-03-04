@@ -19,54 +19,60 @@ import org.openhim.mediator.engine.messages.MediatorHTTPResponse;
 import org.openhim.mediator.engine.messages.MediatorRequestMessage;
 import org.openhim.mediator.engine.messages.SimpleMediatorRequest;
 import org.openhim.mediator.engine.messages.SimpleMediatorResponse;
-import zw.org.mohcc.sadombo.data.FacilityRequestInput;
 import zw.org.mohcc.sadombo.data.OrganisationUnit;
-import zw.org.mohcc.sadombo.data.OrganisationUnitWrapper;
+import zw.org.mohcc.sadombo.data.OrganisationUnitInput;
+import zw.org.mohcc.sadombo.data.OrganisationUnitOutput;
+import zw.org.mohcc.sadombo.data.OrganisationUnitsWrapper;
 import zw.org.mohcc.sadombo.utils.ConfigUtility;
 
 /**
  *
  * @author Charles Chigoriwa
  */
-public class FacilityOrchestrator extends UntypedActor {
+public class GetOrganisationUnitActor extends UntypedActor {
 
     private final MediatorConfig config;
-    private ResolveFacilityRequest originalRequest;
+    private ResolveOrganisationUnitRequest originalRequest;
     private final Channels channels;
 
-    public static class ResolveFacilityRequest extends SimpleMediatorRequest<FacilityRequestInput> {
+    public static class ResolveOrganisationUnitRequest extends SimpleMediatorRequest<OrganisationUnitInput> {
 
-        public ResolveFacilityRequest(ActorRef requestHandler, ActorRef respondTo, FacilityRequestInput facilityRequestInput) {
+        public ResolveOrganisationUnitRequest(ActorRef requestHandler, ActorRef respondTo, OrganisationUnitInput facilityRequestInput) {
             super(requestHandler, respondTo, facilityRequestInput);
         }
     }
 
-    public static class ResolveFacilityResponse extends SimpleMediatorResponse<OrganisationUnit> {
+    public static class ResolveOrganisationUnitResponse extends SimpleMediatorResponse<OrganisationUnitOutput> {
 
-        public ResolveFacilityResponse(MediatorRequestMessage originalRequest, OrganisationUnit organisationUnit) {
-            super(originalRequest, organisationUnit);
+        public ResolveOrganisationUnitResponse(MediatorRequestMessage originalRequest, OrganisationUnitOutput organisationUnitOutput) {
+            super(originalRequest, organisationUnitOutput);
         }
     }
 
     LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
-    public FacilityOrchestrator(MediatorConfig config) {
+    public GetOrganisationUnitActor(MediatorConfig config) {
         this.config = config;
         this.channels = ConfigUtility.getChannels(config);
     }
 
-    private void sendFacilityRequest(ResolveFacilityRequest request) {
+    private void sendFacilityRequest(ResolveOrganisationUnitRequest request) {
         String requestPath = "/api/organisationUnits";
         originalRequest = request;
 
+        OrganisationUnitInput facilityRequestInput = request.getRequestObject();
+        String facilityCode = facilityRequestInput.getFacilityCode();
+        String dhisAuthorization = facilityRequestInput.getDhisAuthorization();
+        String parentOpenHIMTranId = facilityRequestInput.getParentOpenHIMTranId();
+
         List<Pair<String, String>> params = new ArrayList<>();
-        params.add(new ImmutablePair<>("filter", "code:eq:" + request.getRequestObject().getFacilityCode()));
+        params.add(new ImmutablePair<>("filter", "code:eq:" + facilityCode));
         params.add(new ImmutablePair<>("fields", "id,code,name"));
         params.add(new ImmutablePair<>("paging", "false"));
 
         Map<String, String> headers = new LinkedHashMap<>();
-        headers.put("Authorization", request.getRequestObject().getDhisAuthorization());
-        headers.put("x-parent-openhim-transaction-id", request.getRequestObject().getParentOpenHIMTranId());
+        headers.put("Authorization", dhisAuthorization);
+        headers.put("x-parent-openhim-transaction-id", parentOpenHIMTranId);
 
         MediatorHTTPRequest serviceRequest = new MediatorHTTPRequest(
                 request.getRequestHandler(),
@@ -88,23 +94,21 @@ public class FacilityOrchestrator extends UntypedActor {
 
     private void processFacilityServiceResponse(MediatorHTTPResponse response) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        OrganisationUnitWrapper dataSetWrapper = mapper.readValue(response.getBody(), OrganisationUnitWrapper.class);
-        OrganisationUnit organisation = null;
-        List<OrganisationUnit> organisations = dataSetWrapper.getOrganisationUnits();
-        if (organisations != null && !organisations.isEmpty()) {
-            organisation = organisations.get(0);
+        OrganisationUnitsWrapper dataSetWrapper = mapper.readValue(response.getBody(), OrganisationUnitsWrapper.class);
+        OrganisationUnit organisationUnit = null;
+        List<OrganisationUnit> organisationUnits = dataSetWrapper.getOrganisationUnits();
+        if (organisationUnits != null && !organisationUnits.isEmpty()) {
+            organisationUnit = organisationUnits.get(0);
         }
-
-        ResolveFacilityResponse resolveFacilityResponse = new ResolveFacilityResponse(originalRequest, organisation);
-        originalRequest.getRespondTo().tell(resolveFacilityResponse, getSelf());
+        ResolveOrganisationUnitResponse resolveOrganisationUnitResponse = new ResolveOrganisationUnitResponse(originalRequest, new OrganisationUnitOutput(organisationUnit));
+        originalRequest.getRespondTo().tell(resolveOrganisationUnitResponse, getSelf());
 
     }
 
     @Override
     public void onReceive(Object msg) throws Exception {
-        if (msg instanceof ResolveFacilityRequest) {
-            log.info("ResolveFacilityRequest");
-            sendFacilityRequest((ResolveFacilityRequest) msg);
+        if (msg instanceof ResolveOrganisationUnitRequest) {
+            sendFacilityRequest((ResolveOrganisationUnitRequest) msg);
         } else if (msg instanceof MediatorHTTPResponse) {
             processFacilityServiceResponse((MediatorHTTPResponse) msg);
         } else {
