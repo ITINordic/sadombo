@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, ITINordic
  * All rights reserved.
  *
@@ -54,7 +54,7 @@ public class EnhancedRequestBodyTransformer extends RequestBodyTransformer {
     }
 
     private String transformAdxRequestBody(MediatorHTTPRequest request) {
-        Namespace namespace = Namespace.getNamespace("urn:ihe:qrph:adx:2015");
+        Namespace namespace = Namespace.getNamespace(AdxUtility.ADX_NAMESPACE);
         String openHIMTransactionId = request.getHeaders().get("x-openhim-transactionid");
         try {
             Document doc = GeneralUtility.getJDom2Document(request.getBody());

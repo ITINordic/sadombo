@@ -242,7 +242,7 @@ public class DhisOrchestrator extends UntypedActor {
     }
 
     private Group getGroup(MediatorHTTPRequest request) {
-        Namespace namespace = Namespace.getNamespace("urn:ihe:qrph:adx:2015");
+        Namespace namespace = Namespace.getNamespace(AdxUtility.ADX_NAMESPACE);
         try {
             Document doc = GeneralUtility.getJDom2Document(request.getBody());
             Element rootNode = doc.getRootElement();

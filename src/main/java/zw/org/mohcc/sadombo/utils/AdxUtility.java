@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, ITINordic
  * All rights reserved.
  *
@@ -47,6 +47,7 @@ import static zw.org.mohcc.sadombo.utils.GeneralUtility.validateXml;
 public class AdxUtility {
 
     public final static String ADX_CONTENT_TYPE = "application/adx+xml";
+    public final static String ADX_NAMESPACE = "urn:ihe:qrph:adx:2015";
 
     public static boolean hasAdxContentType(MediatorHTTPRequest request) {
         String contentType = request.getHeaders().get("content-type");
