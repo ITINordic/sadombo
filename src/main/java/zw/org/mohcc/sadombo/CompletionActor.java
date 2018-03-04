@@ -62,10 +62,7 @@ public class CompletionActor extends UntypedActor {
         String dhisAuthorization = completionInput.getDhisAuthorization();
         String parentOpenHIMTranId = completionInput.getParentOpenHIMTranId();
 
-        String requestBody
-                = "<completeDataSetRegistrations xmlns=\"http://dhis2.org/schema/dxf/2.0\">\n"
-                + "  <completeDataSetRegistration dataSet=\"" + dataSetId + "\" period=\"" + period + "\"  organisationUnit=\"" + organisationUnitId + "\" />\n"
-                + "</completeDataSetRegistrations>";
+        String requestBody = getRequestBody(dataSetId, period, organisationUnitId);
 
         Map<String, String> headers = new LinkedHashMap<>();
         headers.put("Authorization", dhisAuthorization);
@@ -89,6 +86,12 @@ public class CompletionActor extends UntypedActor {
         ActorSelection httpConnector = getContext().actorSelection(config.userPathFor("http-connector"));
         httpConnector.tell(serviceRequest, getSelf());
 
+    }
+
+    private String getRequestBody(String dataSetId, String period, String organisationUnitId) {
+        return "<completeDataSetRegistrations xmlns=\"http://dhis2.org/schema/dxf/2.0\">\n"
+                + "  <completeDataSetRegistration dataSet=\"" + dataSetId + "\" period=\"" + period + "\"  organisationUnit=\"" + organisationUnitId + "\" />\n"
+                + "</completeDataSetRegistrations>";
     }
 
     private void processCompletionServiceResponse(MediatorHTTPResponse response) throws IOException {
